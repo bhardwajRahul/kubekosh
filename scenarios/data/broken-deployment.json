@@ -20,7 +20,7 @@
     {
       "title": "Fix the image tag",
       "body": "If the image tag doesn't exist, update it to a valid one using `kubectl set image`.",
-      "command": "kubectl set image deployment/broken-app app=nginx:1.25 -n debug"
+      "command": "kubectl set image deployment/broken-app nginx=nginx:1.25 -n debug"
     }
   ],
   "setup_commands": [
