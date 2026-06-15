@@ -1,0 +1,39 @@
+{
+  "id": "cks-mcq-audit-policy",
+  "title": "Kubernetes Audit Logging Levels",
+  "category": "Cluster Setup",
+  "difficulty": "Medium",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Kubernetes Audit Logging\n\nYou are writing an audit policy for the kube-apiserver. You need to capture the **complete request AND response body** for all write operations on `secrets` in any namespace, so you have a full record of every secret modification.\n\nWhich audit level must you specify for these events?",
+  "options": [
+    {
+      "id": "a",
+      "text": "`None` — discard all events matching this rule; nothing is logged"
+    },
+    {
+      "id": "b",
+      "text": "`Metadata` — logs request metadata (user, verb, resource, timestamp) but not the request or response body"
+    },
+    {
+      "id": "c",
+      "text": "`Request` — logs metadata and the request body, but not the response body"
+    },
+    {
+      "id": "d",
+      "text": "`RequestResponse` — logs metadata, the full request body, and the full response body"
+    }
+  ],
+  "correct_option": "d",
+  "explanation": "Kubernetes audit levels in ascending verbosity: **None → Metadata → Request → RequestResponse**. `RequestResponse` is required when you need the complete picture — what was sent and what the API server returned. This is most important for sensitive resources like Secrets. The audit policy file is passed to kube-apiserver via `--audit-policy-file`. Note that `RequestResponse` is expensive; use `Metadata` for most resources.",
+  "hints": [
+    {
+      "title": "Audit policy levels",
+      "body": "The four levels: `None` (discard), `Metadata` (headers only), `Request` (+ request body), `RequestResponse` (+ response body). Configure via `--audit-policy-file` and `--audit-log-path` on the kube-apiserver.",
+      "command": "# Example rule targeting Secrets at RequestResponse level:\n# - level: RequestResponse\n#   resources:\n#   - group: \"\"\n#     resources: [\"secrets\"]"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

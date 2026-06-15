@@ -1,0 +1,52 @@
+{
+  "id": "expose-service-basics",
+  "title": "Exposing an Application",
+  "category": "Services & Networking",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Exposing an Application\n\nA `redis` deployment is running, but other pods cannot reliably connect to it because pod IPs change when they restart.\n\n**Your task:**\n\nCreate a **ClusterIP** Service named `redis-svc` to expose the `redis` deployment on port `6379`.\n\n```bash\n# Verify your service:\nkubectl get svc redis-svc\n```",
+  "hints": [
+    {
+      "title": "Use kubectl expose",
+      "body": "The imperative `expose` command is the fastest way to create a service for a deployment.",
+      "command": "kubectl expose deployment redis --name=redis-svc --port=6379 --target-port=6379"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment redis --image=redis:alpine"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Service 'redis-svc' exists",
+        "command": "kubectl get svc redis-svc -o jsonpath='{.metadata.name}'",
+        "expected_output": "redis-svc",
+        "match": "exact"
+      },
+      {
+        "description": "Service targets port 6379",
+        "command": "kubectl get svc redis-svc -o jsonpath='{.spec.ports[0].port}'",
+        "expected_output": "6379",
+        "match": "exact"
+      },
+      {
+        "description": "Service selector matches deployment",
+        "command": "kubectl get svc redis-svc -o jsonpath='{.spec.selector.app}'",
+        "expected_output": "redis",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment redis --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete svc redis-svc --ignore-not-found"
+    }
+  ]
+}

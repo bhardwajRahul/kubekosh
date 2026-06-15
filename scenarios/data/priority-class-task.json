@@ -1,0 +1,65 @@
+{
+  "id": "priority-class-task",
+  "title": "Pod Priority and PriorityClass",
+  "category": "Workloads & Scheduling",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 6,
+  "description": "## Pod Priority and PriorityClass\n\n**PriorityClasses** assign a numeric priority to pods. When cluster resources are scarce, the scheduler preempts lower-priority pods to make room for higher-priority ones. This is a CKA exam topic.\n\n**Your task:**\n\n1. Create a **PriorityClass** named `high-priority` with:\n   - `value: 1000000`\n   - `globalDefault: false`\n   - `description: \"High priority workloads\"`\n2. Create a Pod named `critical-pod` using `nginx:alpine` that references the `high-priority` PriorityClass via `spec.priorityClassName`\n\n```bash\n# Verify:\nkubectl get priorityclass high-priority\nkubectl get pod critical-pod -o jsonpath='{.spec.priorityClassName}'\n```",
+  "hints": [
+    {
+      "title": "Create the PriorityClass",
+      "body": "PriorityClass is a cluster-scoped resource (not namespaced). Higher value = higher priority.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: scheduling.k8s.io/v1\nkind: PriorityClass\nmetadata:\n  name: high-priority\nvalue: 1000000\nglobalDefault: false\ndescription: \"High priority workloads\"\nEOF"
+    },
+    {
+      "title": "Reference PriorityClass in a Pod",
+      "body": "Set `spec.priorityClassName` in the pod spec to the name of your PriorityClass.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: critical-pod\nspec:\n  priorityClassName: high-priority\n  containers:\n  - name: app\n    image: nginx:alpine\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "PriorityClass 'high-priority' exists",
+        "command": "kubectl get priorityclass high-priority -o jsonpath='{.metadata.name}'",
+        "expected_output": "high-priority",
+        "match": "exact"
+      },
+      {
+        "description": "PriorityClass value is 1000000",
+        "command": "kubectl get priorityclass high-priority -o jsonpath='{.value}'",
+        "expected_output": "1000000",
+        "match": "exact"
+      },
+      {
+        "description": "globalDefault value is false",
+        "command": "kubectl get priorityclass high-priority -o jsonpath='{.globalDefault}' | grep -v '^$' || echo false",
+        "expected_output": "false",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'critical-pod' uses high-priority PriorityClass",
+        "command": "kubectl get pod critical-pod -o jsonpath='{.spec.priorityClassName}'",
+        "expected_output": "high-priority",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'critical-pod' is Running",
+        "command": "kubectl get pod critical-pod -o jsonpath='{.status.phase}'",
+        "expected_output": "Running",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod critical-pod --ignore-not-found --grace-period=0 --force"
+    },
+    {
+      "command": "kubectl delete priorityclass high-priority --ignore-not-found"
+    }
+  ]
+}

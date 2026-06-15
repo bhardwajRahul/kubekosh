@@ -1,0 +1,39 @@
+{
+  "id": "pod-affinity-mcq",
+  "title": "Pod Affinity vs Anti-Affinity",
+  "category": "Workloads & Scheduling",
+  "difficulty": "Medium",
+  "type": "mcq",
+  "weight": 4,
+  "description": "## Pod Affinity vs Anti-Affinity\n\nYou want to ensure that **cache** pods are always scheduled on the **same node** as the **app** pods they serve (to reduce latency). Which scheduling rule should you use in the cache pod spec?",
+  "options": [
+    {
+      "id": "a",
+      "text": "`spec.affinity.podAntiAffinity` with `requiredDuringSchedulingIgnoredDuringExecution` matching `app=app-pod`"
+    },
+    {
+      "id": "b",
+      "text": "`spec.affinity.podAffinity` with `requiredDuringSchedulingIgnoredDuringExecution` matching `app=app-pod`"
+    },
+    {
+      "id": "c",
+      "text": "`spec.affinity.nodeAffinity` with a `matchExpressions` for the app pod's node label"
+    },
+    {
+      "id": "d",
+      "text": "`spec.tolerations` with `key=app-pod` and `effect=NoSchedule`"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "**Pod Affinity** (`spec.affinity.podAffinity`) attracts pods to nodes where matching pods are already running. Use `requiredDuringSchedulingIgnoredDuringExecution` for a hard constraint (cache pod MUST co-locate with app pod) vs `preferredDuringSchedulingIgnoredDuringExecution` for a soft preference. **Pod Anti-Affinity** does the opposite — spreads pods apart. Tolerations are unrelated to co-location and work with taints.",
+  "hints": [
+    {
+      "title": "Affinity types",
+      "body": "podAffinity = attract to same node. podAntiAffinity = repel from same node. nodeAffinity = attract to nodes with specific labels. The `topologyKey: kubernetes.io/hostname` means 'same node'.",
+      "command": "kubectl explain pod.spec.affinity.podAffinity"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

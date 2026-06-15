@@ -1,0 +1,52 @@
+{
+  "id": "nodeport-task",
+  "title": "Expose a Deployment via NodePort",
+  "category": "Services & Networking",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 5,
+  "description": "## Expose a Deployment via NodePort\n\nA **NodePort** service exposes an application on a static port on every node, making it accessible outside the cluster without a cloud load balancer.\n\n**Your task:**\n\nA deployment `frontend` is already running. Expose it as a **NodePort** service named `frontend-np` on:\n- Service port `80`\n- NodePort `30080`\n- Target port `80`",
+  "hints": [
+    {
+      "title": "Create NodePort service",
+      "body": "Use `kubectl expose` or apply a Service manifest with `type: NodePort` and the `nodePort` field.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Service\nmetadata:\n  name: frontend-np\nspec:\n  type: NodePort\n  selector:\n    app: frontend\n  ports:\n  - port: 80\n    targetPort: 80\n    nodePort: 30080\nEOF"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment frontend --image=nginx:alpine --replicas=1 2>/dev/null || true"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Service 'frontend-np' exists",
+        "command": "kubectl get service frontend-np -o jsonpath='{.metadata.name}'",
+        "expected_output": "frontend-np",
+        "match": "exact"
+      },
+      {
+        "description": "Service type is NodePort",
+        "command": "kubectl get service frontend-np -o jsonpath='{.spec.type}'",
+        "expected_output": "NodePort",
+        "match": "exact"
+      },
+      {
+        "description": "NodePort is 30080",
+        "command": "kubectl get service frontend-np -o jsonpath='{.spec.ports[0].nodePort}'",
+        "expected_output": "30080",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment frontend --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete svc frontend-np --ignore-not-found"
+    }
+  ]
+}

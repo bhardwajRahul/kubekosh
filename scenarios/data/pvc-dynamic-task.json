@@ -1,0 +1,59 @@
+{
+  "id": "pvc-dynamic-task",
+  "title": "Dynamic PVC Provisioning",
+  "category": "Storage",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 6,
+  "description": "## Dynamic PVC Provisioning\n\nDynamic provisioning automatically creates a PersistentVolume when a PVC is created, using a StorageClass. k3s ships with a built-in `local-path` StorageClass.\n\n**Your task:**\n\n1. Create a **PersistentVolumeClaim** named `app-data` that requests:\n   - Storage: `1Gi`\n   - Access mode: `ReadWriteOnce`\n   - StorageClass: `local-path`\n2. Create a Pod named `data-pod` using `nginx:alpine` that mounts `app-data` at `/data`\n\n```bash\nkubectl get storageclass   # verify local-path exists\n```",
+  "hints": [
+    {
+      "title": "PVC manifest",
+      "body": "Set `storageClassName: local-path` (k3s default). Dynamic provisioning creates the PV automatically.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: app-data\nspec:\n  accessModes: [ReadWriteOnce]\n  storageClassName: local-path\n  resources:\n    requests:\n      storage: 1Gi\nEOF"
+    },
+    {
+      "title": "Mount PVC in a Pod",
+      "body": "Reference the PVC by name in `spec.volumes[].persistentVolumeClaim.claimName`.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: data-pod\nspec:\n  containers:\n  - name: app\n    image: nginx:alpine\n    volumeMounts:\n    - name: storage\n      mountPath: /data\n  volumes:\n  - name: storage\n    persistentVolumeClaim:\n      claimName: app-data\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "PVC 'app-data' exists",
+        "command": "kubectl get pvc app-data -o jsonpath='{.metadata.name}'",
+        "expected_output": "app-data",
+        "match": "exact"
+      },
+      {
+        "description": "PVC requests 1Gi storage",
+        "command": "kubectl get pvc app-data -o jsonpath='{.spec.resources.requests.storage}'",
+        "expected_output": "1Gi",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'data-pod' mounts the PVC",
+        "command": "kubectl get pod data-pod -o jsonpath='{.spec.volumes[0].persistentVolumeClaim.claimName}'",
+        "expected_output": "app-data",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'data-pod' is Running",
+        "command": "kubectl get pod data-pod -o jsonpath='{.status.phase}'",
+        "expected_output": "Running",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pvc app-data --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete pod data-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "cks-mcq-sandboxing",
+  "title": "Container Runtime Sandboxing",
+  "category": "System Hardening",
+  "difficulty": "Hard",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Container Runtime Sandboxing\n\nA security team wants to run untrusted workloads with stronger isolation than the standard `runc` runtime — specifically, they want each container's system calls to be intercepted by a user-space kernel rather than reaching the host kernel directly.\n\nWhich solution achieves this, and how is it configured in Kubernetes?",
+  "options": [
+    {
+      "id": "a",
+      "text": "Seccomp with `RuntimeDefault` — restricts which syscalls are allowed via a BPF filter, but syscalls still reach the host kernel"
+    },
+    {
+      "id": "b",
+      "text": "AppArmor with a `deny` profile — enforces path-based MAC policies but does not intercept syscalls"
+    },
+    {
+      "id": "c",
+      "text": "gVisor (`runsc`) via a `RuntimeClass` — intercepts all syscalls in user-space with its own kernel implementation, isolating the host kernel from the container"
+    },
+    {
+      "id": "d",
+      "text": "A `PodDisruptionBudget` — prevents pod disruptions and provides workload isolation"
+    }
+  ],
+  "correct_option": "c",
+  "explanation": "**gVisor** (`runsc`) is a user-space kernel from Google that intercepts all container system calls before they reach the host kernel, providing strong isolation. In Kubernetes it is configured via a **RuntimeClass** resource and referenced in a pod with `spec.runtimeClassName`. Kata Containers is a similar alternative using lightweight VMs. Seccomp filters syscalls but they still hit the host kernel. AppArmor enforces file-access policies, not syscall interception.",
+  "hints": [
+    {
+      "title": "RuntimeClass and runtimeClassName",
+      "body": "Create a `RuntimeClass` that maps a name to the container runtime handler (e.g., `handler: runsc`). Reference it in a pod with `spec.runtimeClassName: <name>`.",
+      "command": "kubectl explain runtimeclass\nkubectl explain pod.spec.runtimeClassName"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

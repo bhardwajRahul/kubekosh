@@ -1,0 +1,40 @@
+{
+  "id": "edit-deployment-basics",
+  "title": "Updating Deployments",
+  "category": "Workloads",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Updating a Deployment\n\nA deployment named `web-app` is currently running `nginx:1.24`. A security vulnerability was found in this version.\n\n**Your task:**\n\nUpdate the image of the `web-app` deployment to `nginx:1.25` to patch the vulnerability. Wait for the new pods to become ready.\n\n```bash\n# Verify your change:\nkubectl describe deployment web-app | grep Image\n```",
+  "hints": [
+    {
+      "title": "Set image command",
+      "body": "You can use `kubectl set image` to update a deployment's container image immediately.",
+      "command": "kubectl set image deployment/web-app nginx=nginx:1.25"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment web-app --image=nginx:1.24"
+    },
+    {
+      "command": "kubectl rollout status deployment/web-app --timeout=60s"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Deployment uses image nginx:1.25",
+        "command": "kubectl get deployment web-app -o jsonpath='{.spec.template.spec.containers[0].image}'",
+        "expected_output": "nginx:1.25",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment web-app --ignore-not-found"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "id": "ingress-task",
+  "title": "Create an Ingress Resource",
+  "category": "Services & Networking",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 7,
+  "description": "## Create an Ingress Resource\n\nIngress exposes HTTP/HTTPS routes from outside the cluster to services within it. k3s includes Traefik as its default Ingress controller.\n\n**Your task:**\n\nA deployment `web-app` and service `web-svc` (port 80) already exist. Create an **Ingress** named `web-ingress` that:\n- Routes traffic for host `app.lab.local`\n- Path `/` → service `web-svc` on port `80`\n- Uses `pathType: Prefix`",
+  "hints": [
+    {
+      "title": "Ingress manifest",
+      "body": "Use `networking.k8s.io/v1` for the Ingress API. Define `spec.rules[].host` and `spec.rules[].http.paths[]`.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: web-ingress\nspec:\n  rules:\n  - host: app.lab.local\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: web-svc\n            port:\n              number: 80\nEOF"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment web-app --image=nginx:alpine --replicas=1 2>/dev/null || true"
+    },
+    {
+      "command": "kubectl expose deployment web-app --name=web-svc --port=80 --target-port=80 2>/dev/null || true"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Ingress 'web-ingress' exists",
+        "command": "kubectl get ingress web-ingress -o jsonpath='{.metadata.name}'",
+        "expected_output": "web-ingress",
+        "match": "exact"
+      },
+      {
+        "description": "Ingress host is app.lab.local",
+        "command": "kubectl get ingress web-ingress -o jsonpath='{.spec.rules[0].host}'",
+        "expected_output": "app.lab.local",
+        "match": "exact"
+      },
+      {
+        "description": "Backend service is web-svc",
+        "command": "kubectl get ingress web-ingress -o jsonpath='{.spec.rules[0].http.paths[0].backend.service.name}'",
+        "expected_output": "web-svc",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment web-app --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete svc web-svc --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete ingress web-ingress --ignore-not-found"
+    }
+  ]
+}

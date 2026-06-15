@@ -10,8 +10,8 @@ const PORT = 4000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-const SCENARIOS_FILE = path.join(__dirname, '../scenarios/scenarios.json');
-const BUNDLES_FILE   = path.join(__dirname, '../scenarios/bundles.json');
+const SCENARIOS_DIR = path.join(__dirname, '../scenarios/data');
+const BUNDLES_DIR   = path.join(__dirname, '../scenarios/bundles');
 const DB_FILE = process.env.PROGRESS_DB || '/data/progress.db';
 
 // ── SQLite progress store ─────────────────────────────────────────────────────
@@ -82,12 +82,18 @@ function saveProgress(progress) {
 }
 
 
+function loadJsonDir(dir) {
+  return fs.readdirSync(dir)
+    .filter(f => f.endsWith('.json'))
+    .map(f => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')));
+}
+
 function loadScenarios() {
-  return JSON.parse(fs.readFileSync(SCENARIOS_FILE, 'utf8'));
+  return loadJsonDir(SCENARIOS_DIR);
 }
 
 function loadBundles() {
-  return JSON.parse(fs.readFileSync(BUNDLES_FILE, 'utf8'));
+  return loadJsonDir(BUNDLES_DIR);
 }
 
 function runCommand(cmd, timeoutMs = 15000) {

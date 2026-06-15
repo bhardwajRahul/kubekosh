@@ -1,0 +1,51 @@
+{
+  "id": "scale-deployment",
+  "title": "Scaling a Deployment",
+  "category": "Workloads",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Scaling a Deployment\n\nA deployment named `webapp` is currently running with **1 replica**. Traffic has increased and you need to scale it up.\n\n**Your task:**\n\nScale the `webapp` deployment to **4 replicas** and verify all pods become Ready.\n\n```bash\n# You can use the imperative command\nkubectl scale deployment webapp --replicas=4\n# Or edit the manifest\nkubectl edit deployment webapp\n```",
+  "hints": [
+    {
+      "title": "Scale imperatively",
+      "body": "`kubectl scale` is the quickest way to change replica count without editing a YAML file.",
+      "command": "kubectl scale deployment webapp --replicas=4"
+    },
+    {
+      "title": "Verify the scale",
+      "body": "Check READY column in `kubectl get deployment webapp` — it should show 4/4.",
+      "command": "kubectl get deployment webapp"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment webapp --image=nginx:alpine --replicas=1"
+    },
+    {
+      "command": "kubectl rollout status deployment/webapp --timeout=60s"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Deployment 'webapp' has 4 replicas specified",
+        "command": "kubectl get deployment webapp -o jsonpath='{.spec.replicas}'",
+        "expected_output": "4",
+        "match": "exact"
+      },
+      {
+        "description": "Deployment 'webapp' has 4 ready replicas",
+        "command": "kubectl get deployment webapp -o jsonpath='{.status.readyReplicas}' 2>/dev/null | grep -v '^$' || echo 0",
+        "expected_output": "4",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment webapp --ignore-not-found"
+    }
+  ]
+}

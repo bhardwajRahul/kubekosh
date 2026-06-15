@@ -1,0 +1,57 @@
+{
+  "id": "cks-non-root-enforce",
+  "title": "Enforce Non-Root Container",
+  "category": "Workload Security",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 5,
+  "description": "## Enforce Non-Root Execution\n\nRunning containers as root is one of the most common security misconfigurations. Kubernetes provides `runAsNonRoot` and `runAsUser` to enforce this at the pod level.\n\n**Your task:**\n\nCreate a Pod named `nonroot-pod` in the `default` namespace using the `busybox:1.36` image (command: `sleep 3600`) with the following security configuration:\n\n- Pod-level `securityContext`:\n  - `runAsNonRoot: true`\n  - `runAsUser: 10001`\n  - `runAsGroup: 10001`\n- Container-level `securityContext`:\n  - `allowPrivilegeEscalation: false`\n  - `readOnlyRootFilesystem: true`\n- An `emptyDir` volume mounted at `/tmp` so the process has writable scratch space.\n\n```bash\n# Verify:\nkubectl get pod nonroot-pod -o jsonpath='{.spec.securityContext}'\n```",
+  "hints": [
+    {
+      "title": "Combine Pod and Container securityContext",
+      "body": "Put runAsNonRoot, runAsUser, and runAsGroup in the pod-level securityContext. Put allowPrivilegeEscalation and readOnlyRootFilesystem in the container-level securityContext.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: nonroot-pod\nspec:\n  securityContext:\n    runAsNonRoot: true\n    runAsUser: 10001\n    runAsGroup: 10001\n  containers:\n  - name: app\n    image: busybox:1.36\n    command: [\"sleep\", \"3600\"]\n    securityContext:\n      allowPrivilegeEscalation: false\n      readOnlyRootFilesystem: true\n    volumeMounts:\n    - name: tmp-dir\n      mountPath: /tmp\n  volumes:\n  - name: tmp-dir\n    emptyDir: {}\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Pod 'nonroot-pod' exists",
+        "command": "kubectl get pod nonroot-pod -o jsonpath='{.metadata.name}'",
+        "expected_output": "nonroot-pod",
+        "match": "exact"
+      },
+      {
+        "description": "runAsNonRoot is true",
+        "command": "kubectl get pod nonroot-pod -o jsonpath='{.spec.securityContext.runAsNonRoot}'",
+        "expected_output": "true",
+        "match": "exact"
+      },
+      {
+        "description": "runAsUser is 10001",
+        "command": "kubectl get pod nonroot-pod -o jsonpath='{.spec.securityContext.runAsUser}'",
+        "expected_output": "10001",
+        "match": "exact"
+      },
+      {
+        "description": "allowPrivilegeEscalation is false",
+        "command": "kubectl get pod nonroot-pod -o jsonpath='{.spec.containers[0].securityContext.allowPrivilegeEscalation}'",
+        "expected_output": "false",
+        "match": "exact"
+      },
+      {
+        "description": "readOnlyRootFilesystem is true",
+        "command": "kubectl get pod nonroot-pod -o jsonpath='{.spec.containers[0].securityContext.readOnlyRootFilesystem}'",
+        "expected_output": "true",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod nonroot-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

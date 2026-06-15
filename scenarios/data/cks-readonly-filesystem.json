@@ -1,0 +1,45 @@
+{
+  "id": "cks-readonly-filesystem",
+  "title": "Read-Only Root Filesystem",
+  "category": "Workload Security",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Read-Only Root Filesystem\n\nSetting `readOnlyRootFilesystem: true` prevents any process inside the container from writing to the container's root filesystem layer, significantly reducing the blast radius of a compromised container.\n\n**Your task:**\n\nCreate a Pod named `readonly-pod` using `busybox:1.36` (command: `sleep 3600`) with:\n- `readOnlyRootFilesystem: true` in the container's `securityContext`\n- An `emptyDir` volume mounted at `/tmp` to provide writable scratch space\n\n```bash\n# Verify:\nkubectl get pod readonly-pod -o jsonpath='{.spec.containers[0].securityContext.readOnlyRootFilesystem}'\n```",
+  "hints": [
+    {
+      "title": "readOnlyRootFilesystem with emptyDir",
+      "body": "Set `readOnlyRootFilesystem: true` in the container's `securityContext`. Mount an `emptyDir` volume at `/tmp` so the process has a writable location if needed.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: readonly-pod\nspec:\n  containers:\n  - name: app\n    image: busybox:1.36\n    command: [\"sleep\", \"3600\"]\n    securityContext:\n      readOnlyRootFilesystem: true\n    volumeMounts:\n    - name: tmp-vol\n      mountPath: /tmp\n  volumes:\n  - name: tmp-vol\n    emptyDir: {}\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Pod 'readonly-pod' exists",
+        "command": "kubectl get pod readonly-pod -o jsonpath='{.metadata.name}'",
+        "expected_output": "readonly-pod",
+        "match": "exact"
+      },
+      {
+        "description": "readOnlyRootFilesystem is true",
+        "command": "kubectl get pod readonly-pod -o jsonpath='{.spec.containers[0].securityContext.readOnlyRootFilesystem}'",
+        "expected_output": "true",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'readonly-pod' is Running",
+        "command": "kubectl get pod readonly-pod -o jsonpath='{.status.phase}'",
+        "expected_output": "Running",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod readonly-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

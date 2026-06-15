@@ -1,0 +1,75 @@
+{
+  "id": "network-policy",
+  "title": "Isolate Traffic with NetworkPolicy",
+  "category": "Networking",
+  "difficulty": "Hard",
+  "type": "task",
+  "weight": 9,
+  "description": "## Implement Network Isolation\n\nA pre-created `database` pod in the `netpol` namespace must only accept traffic from pods labeled `role=backend`.\n\n**Your tasks:**\n1. Create a **NetworkPolicy** named `db-isolate` in the `netpol` namespace that:\n   - Targets pods with label `app=database`\n   - Allows **ingress** only from pods with label `role=backend` in the **same namespace**\n   - Denies all other ingress traffic\n2. Verify the policy is applied correctly\n\n> The `database` and `backend` pods are pre-created for you.",
+  "hints": [
+    {
+      "title": "Understand NetworkPolicy selectors",
+      "body": "A NetworkPolicy uses `podSelector` to pick which pods it applies to, and `ingress.from` to define allowed sources.",
+      "command": "kubectl explain networkpolicy.spec.ingress.from"
+    },
+    {
+      "title": "Write the NetworkPolicy",
+      "body": "An empty ingress rule (no `from`) denies everything. Specifying a `from` allows only those sources.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: db-isolate\n  namespace: netpol\nspec:\n  podSelector:\n    matchLabels:\n      app: database\n  policyTypes:\n  - Ingress\n  ingress:\n  - from:\n    - podSelector:\n        matchLabels:\n          role: backend\nEOF"
+    },
+    {
+      "title": "Verify the policy",
+      "body": "List NetworkPolicies to confirm it was created.",
+      "command": "kubectl get networkpolicy db-isolate -n netpol -o yaml"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create namespace netpol"
+    },
+    {
+      "command": "kubectl run database --image=nginx:1.25 --labels=app=database -n netpol"
+    },
+    {
+      "command": "kubectl run backend --image=busybox:1.36 --labels=role=backend -n netpol --command -- sleep 3600"
+    },
+    {
+      "command": "kubectl run other --image=busybox:1.36 --labels=role=other -n netpol --command -- sleep 3600"
+    }
+  ],
+  "validation": {
+    "description": "Verifies the NetworkPolicy exists and correctly targets the database pod.",
+    "commands": [
+      {
+        "description": "NetworkPolicy 'db-isolate' exists",
+        "command": "kubectl get networkpolicy db-isolate -n netpol -o jsonpath='{.metadata.name}'",
+        "expected_output": "db-isolate",
+        "match": "exact"
+      },
+      {
+        "description": "Policy targets pods with label app=database",
+        "command": "kubectl get networkpolicy db-isolate -n netpol -o jsonpath='{.spec.podSelector.matchLabels.app}'",
+        "expected_output": "database",
+        "match": "exact"
+      },
+      {
+        "description": "Policy has Ingress policyType",
+        "command": "kubectl get networkpolicy db-isolate -n netpol -o jsonpath='{.spec.policyTypes[0]}'",
+        "expected_output": "Ingress",
+        "match": "exact"
+      },
+      {
+        "description": "Ingress allows from role=backend",
+        "command": "kubectl get networkpolicy db-isolate -n netpol -o jsonpath='{.spec.ingress[0].from[0].podSelector.matchLabels.role}'",
+        "expected_output": "backend",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "netpol",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete namespace netpol --ignore-not-found --wait=false"
+    }
+  ]
+}

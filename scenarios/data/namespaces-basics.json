@@ -1,0 +1,56 @@
+{
+  "id": "namespaces-basics",
+  "title": "Working with Namespaces",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Working with Namespaces\n\nNamespaces provide a mechanism for isolating groups of resources within a single cluster.\n\n**Your task:**\n\n1. Create a namespace called `team-alpha`\n2. Deploy a `nginx:alpine` Deployment named `web` with **2 replicas** inside the `team-alpha` namespace\n\n**Verify your work:**\n```bash\nkubectl get namespace team-alpha\nkubectl get deployment web -n team-alpha\n```",
+  "hints": [
+    {
+      "title": "Create a namespace",
+      "body": "Use `kubectl create namespace <name>` to create a new namespace.",
+      "command": "kubectl create namespace team-alpha"
+    },
+    {
+      "title": "Deploy into a specific namespace",
+      "body": "Use the `-n` or `--namespace` flag with `kubectl create deployment`. Alternatively use `kubectl apply -f` with `namespace` set in the manifest metadata.",
+      "command": "kubectl create deployment web --image=nginx:alpine --replicas=2 -n team-alpha"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Namespace 'team-alpha' exists",
+        "command": "kubectl get namespace team-alpha -o jsonpath='{.metadata.name}'",
+        "expected_output": "team-alpha",
+        "match": "exact"
+      },
+      {
+        "description": "Deployment 'web' exists in team-alpha",
+        "command": "kubectl get deployment web -n team-alpha -o jsonpath='{.metadata.name}'",
+        "expected_output": "web",
+        "match": "exact"
+      },
+      {
+        "description": "Deployment 'web' has 2 replicas",
+        "command": "kubectl get deployment web -n team-alpha -o jsonpath='{.spec.replicas}'",
+        "expected_output": "2",
+        "match": "exact"
+      },
+      {
+        "description": "Deployment uses nginx image",
+        "command": "kubectl get deployment web -n team-alpha -o jsonpath='{.spec.template.spec.containers[0].image}'",
+        "expected_output": "nginx",
+        "match": "contains"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete namespace team-alpha --ignore-not-found --wait=false"
+    }
+  ]
+}

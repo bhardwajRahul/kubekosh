@@ -1,0 +1,45 @@
+{
+  "id": "readiness-probe-task",
+  "title": "Configure a Readiness Probe",
+  "category": "Workloads & Scheduling",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 6,
+  "description": "## Configure a Readiness Probe\n\nA **readiness probe** tells Kubernetes when a container is ready to accept traffic. Unlike a liveness probe (which restarts containers), a failed readiness probe removes the pod from Service endpoints until it recovers.\n\n**Your task:**\n\nCreate a Deployment named `ready-app` with:\n- Image: `nginx:alpine`, 2 replicas\n- A **readiness probe**: HTTP GET `/` on port `80`, `initialDelaySeconds: 3`, `periodSeconds: 5`",
+  "hints": [
+    {
+      "title": "Readiness probe YAML",
+      "body": "Add `readinessProbe` under the container spec — same structure as `livenessProbe` but controls traffic routing, not restarts.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ready-app\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: ready-app\n  template:\n    metadata:\n      labels:\n        app: ready-app\n    spec:\n      containers:\n      - name: app\n        image: nginx:alpine\n        readinessProbe:\n          httpGet:\n            path: /\n            port: 80\n          initialDelaySeconds: 3\n          periodSeconds: 5\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Deployment 'ready-app' exists",
+        "command": "kubectl get deployment ready-app -o jsonpath='{.metadata.name}'",
+        "expected_output": "ready-app",
+        "match": "exact"
+      },
+      {
+        "description": "Readiness probe path is /",
+        "command": "kubectl get deployment ready-app -o jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.path}'",
+        "expected_output": "/",
+        "match": "exact"
+      },
+      {
+        "description": "Readiness probe initialDelaySeconds is 3",
+        "command": "kubectl get deployment ready-app -o jsonpath='{.spec.template.spec.containers[0].readinessProbe.initialDelaySeconds}'",
+        "expected_output": "3",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment ready-app --ignore-not-found"
+    }
+  ]
+}

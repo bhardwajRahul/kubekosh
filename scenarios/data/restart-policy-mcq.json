@@ -1,0 +1,39 @@
+{
+  "id": "restart-policy-mcq",
+  "title": "Pod Restart Policies",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Pod Restart Policies\n\nA pod runs a one-time database migration script. If the script **fails** (non-zero exit), the container should be restarted. If it **succeeds** (exit 0), it should **not** be restarted.\n\nWhich `restartPolicy` should be set in the pod spec?",
+  "options": [
+    {
+      "id": "a",
+      "text": "`Always` — restarts the container regardless of exit code (this is the default)"
+    },
+    {
+      "id": "b",
+      "text": "`OnFailure` — restarts only if the container exits with a non-zero code"
+    },
+    {
+      "id": "c",
+      "text": "`Never` — the container is never restarted, even on failure"
+    },
+    {
+      "id": "d",
+      "text": "`OnCompletion` — restarts the container only after it completes successfully"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "`OnFailure` is the right policy for batch workloads like migration scripts — Kubernetes restarts the container on any non-zero exit code but leaves it alone after a clean exit (code 0). `Always` (the default for Deployment pods) would keep restarting even after success, creating an infinite restart loop. `Never` means no automatic recovery on failure. `OnCompletion` does not exist in Kubernetes — the three valid values are `Always`, `OnFailure`, and `Never`. Jobs automatically use `OnFailure` by default.",
+  "hints": [
+    {
+      "title": "restartPolicy values",
+      "body": "Three valid values: `Always` (default for Pods), `OnFailure` (for Jobs/batch), `Never` (run-once, no retry). Check with `kubectl explain pod.spec.restartPolicy`.",
+      "command": "kubectl explain pod.spec.restartPolicy"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

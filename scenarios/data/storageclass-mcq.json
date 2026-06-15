@@ -1,0 +1,39 @@
+{
+  "id": "storageclass-mcq",
+  "title": "StorageClass Reclaim Policies",
+  "category": "Storage",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## StorageClass Reclaim Policies\n\nA PersistentVolumeClaim bound to a PV is deleted. The StorageClass has `reclaimPolicy: Retain`.\n\nWhat happens to the underlying PersistentVolume?",
+  "options": [
+    {
+      "id": "a",
+      "text": "The PV is immediately deleted along with all data"
+    },
+    {
+      "id": "b",
+      "text": "The PV remains but enters a `Released` state; the data is preserved and must be manually reclaimed"
+    },
+    {
+      "id": "c",
+      "text": "The PV is automatically rebound to the next PVC that requests the same storage class"
+    },
+    {
+      "id": "d",
+      "text": "The PV is converted to an emptyDir volume attached to the node"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "With `reclaimPolicy: Retain`, when a PVC is deleted the PV moves to `Released` state — the data is **preserved** on the storage backend, but the PV is not available for automatic rebinding. An admin must manually reclaim it (delete the PV, clean the storage, recreate the PV). Contrast with `reclaimPolicy: Delete`, which deletes both the PV object and the underlying storage asset automatically.",
+  "hints": [
+    {
+      "title": "Reclaim policies",
+      "body": "Three policies exist: `Retain` (manual reclaim), `Delete` (auto-delete storage), `Recycle` (deprecated, basic scrub). Check with: `kubectl get storageclass`.",
+      "command": "kubectl get storageclass -o jsonpath='{range .items[*]}{.metadata.name}={.reclaimPolicy}{\"\\n\"}{end}'"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

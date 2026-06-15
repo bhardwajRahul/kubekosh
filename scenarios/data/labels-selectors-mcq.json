@@ -1,0 +1,39 @@
+{
+  "id": "labels-selectors-mcq",
+  "title": "Labels and Selectors",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Labels and Selectors\n\nYou run the following command:\n\n```bash\nkubectl get pods -l env=prod,tier=frontend\n```\n\nWhat does this command return?",
+  "options": [
+    {
+      "id": "a",
+      "text": "Pods that have BOTH `env=prod` AND `tier=frontend` labels"
+    },
+    {
+      "id": "b",
+      "text": "Pods that have either `env=prod` OR `tier=frontend` labels"
+    },
+    {
+      "id": "c",
+      "text": "Pods that do NOT have `env=prod` or `tier=frontend` labels"
+    },
+    {
+      "id": "d",
+      "text": "All pods, sorted by the `env` and `tier` label values"
+    }
+  ],
+  "correct_option": "a",
+  "explanation": "When you specify multiple label selector expressions separated by commas, Kubernetes applies a logical **AND** — all conditions must be true. Only pods that have both `env=prod` **and** `tier=frontend` are returned. Use `-l 'env in (prod,staging)'` for OR-style matching.",
+  "hints": [
+    {
+      "title": "How comma-separated selectors work",
+      "body": "The `-l` flag accepts a comma-separated list of `key=value` expressions. Multiple expressions are ANDed together — all must match for a pod to be included in the result.",
+      "command": "kubectl get pods -l env=prod,tier=frontend"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

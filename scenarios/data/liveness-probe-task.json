@@ -1,0 +1,51 @@
+{
+  "id": "liveness-probe-task",
+  "title": "Configure a Liveness Probe",
+  "category": "Workloads",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 6,
+  "description": "## Configure a Liveness Probe\n\nKubernetes uses **liveness probes** to know when to restart a container. If a container's liveness probe fails repeatedly, the kubelet kills the container and the pod's restart policy takes effect.\n\n**Your task:**\n\nCreate a Deployment named `probed-app` with:\n- Image: `nginx:alpine`\n- 1 replica\n- A **liveness probe** that:\n  - Checks `HTTP GET /` on port `80`\n  - `initialDelaySeconds: 5`\n  - `periodSeconds: 10`",
+  "hints": [
+    {
+      "title": "Liveness probe structure",
+      "body": "Add `livenessProbe` under `spec.containers[]`. Use `httpGet` with `path` and `port` fields.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: probed-app\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: probed-app\n  template:\n    metadata:\n      labels:\n        app: probed-app\n    spec:\n      containers:\n      - name: app\n        image: nginx:alpine\n        ports:\n        - containerPort: 80\n        livenessProbe:\n          httpGet:\n            path: /\n            port: 80\n          initialDelaySeconds: 5\n          periodSeconds: 10\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Deployment 'probed-app' exists",
+        "command": "kubectl get deployment probed-app -o jsonpath='{.metadata.name}'",
+        "expected_output": "probed-app",
+        "match": "exact"
+      },
+      {
+        "description": "Liveness probe uses HTTP GET on port 80",
+        "command": "kubectl get deployment probed-app -o jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.port}'",
+        "expected_output": "80",
+        "match": "exact"
+      },
+      {
+        "description": "initialDelaySeconds is 5",
+        "command": "kubectl get deployment probed-app -o jsonpath='{.spec.template.spec.containers[0].livenessProbe.initialDelaySeconds}'",
+        "expected_output": "5",
+        "match": "exact"
+      },
+      {
+        "description": "periodSeconds is 10",
+        "command": "kubectl get deployment probed-app -o jsonpath='{.spec.template.spec.containers[0].livenessProbe.periodSeconds}'",
+        "expected_output": "10",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment probed-app --ignore-not-found"
+    }
+  ]
+}

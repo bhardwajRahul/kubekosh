@@ -1,0 +1,39 @@
+{
+  "id": "kubectl-output-format-mcq",
+  "title": "kubectl Output Formats",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 2,
+  "description": "## kubectl Output Formats\n\nYou need to retrieve the **full live manifest** of a running deployment named `frontend` in YAML format so you can save it to a file for version control.\n\nWhich command produces the correct output?",
+  "options": [
+    {
+      "id": "a",
+      "text": "`kubectl describe deployment frontend` — prints a human-readable summary with events"
+    },
+    {
+      "id": "b",
+      "text": "`kubectl get deployment frontend -o yaml` — prints the full manifest in YAML format"
+    },
+    {
+      "id": "c",
+      "text": "`kubectl export deployment frontend` — exports a portable manifest (removed in k8s 1.18)"
+    },
+    {
+      "id": "d",
+      "text": "`kubectl manifest deployment frontend` — a built-in command for generating manifests"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "`kubectl get <resource> -o yaml` (or `--output=yaml`) prints the full live manifest as YAML, including all managed fields. `kubectl describe` gives a human-readable summary with events — not a re-applicable YAML manifest. `kubectl export` was removed in Kubernetes 1.18. `kubectl manifest` does not exist. Use `-o json` for JSON output, or `-o jsonpath='...'` to extract specific fields. To save to a file: `kubectl get deployment frontend -o yaml > frontend.yaml`.",
+  "hints": [
+    {
+      "title": "Output format flags",
+      "body": "The `-o` / `--output` flag controls format: `-o yaml`, `-o json`, `-o wide` (extra columns), `-o name` (just the resource name), `-o jsonpath='...'` (field extraction).",
+      "command": "kubectl get deployment frontend -o yaml"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

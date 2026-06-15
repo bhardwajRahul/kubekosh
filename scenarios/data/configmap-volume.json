@@ -1,0 +1,65 @@
+{
+  "id": "configmap-volume",
+  "title": "Mount ConfigMap as Volume",
+  "category": "Configuration",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 7,
+  "description": "## Inject Configuration via a ConfigMap Volume\n\nAn application reads its configuration from files on disk at `/etc/app-config/`.\n\n**Your tasks:**\n1. Create a **ConfigMap** named `app-config` in the `default` namespace with the following key-value pairs:\n   - `environment`: `production`\n   - `log_level`: `warn`\n   - `max_connections`: `200`\n2. Create a **Pod** named `config-reader` using image `busybox:1.36`\n3. Mount the ConfigMap as a **volume** at `/etc/app-config` inside the container\n4. The pod should run the command: `sleep 3600`",
+  "hints": [
+    {
+      "title": "Create the ConfigMap",
+      "body": "Use `--from-literal` for each key-value pair.",
+      "command": "kubectl create configmap app-config --from-literal=environment=production --from-literal=log_level=warn --from-literal=max_connections=200"
+    },
+    {
+      "title": "Write the Pod manifest",
+      "body": "Use a heredoc piped directly to kubectl apply -f - to avoid writing to a temp file.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: config-reader\nspec:\n  containers:\n  - name: reader\n    image: busybox:1.36\n    command: [\"sleep\", \"3600\"]\n    volumeMounts:\n    - name: config-vol\n      mountPath: /etc/app-config\n  volumes:\n  - name: config-vol\n    configMap:\n      name: app-config\nEOF"
+    },
+    {
+      "title": "Verify",
+      "body": "Confirm that the ConfigMap files are visible inside the container.",
+      "command": "kubectl exec config-reader -- ls /etc/app-config"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "description": "Verifies ConfigMap exists with correct keys and the pod mounts it at the right path.",
+    "commands": [
+      {
+        "description": "ConfigMap 'app-config' exists",
+        "command": "kubectl get configmap app-config -o jsonpath='{.metadata.name}'",
+        "expected_output": "app-config",
+        "match": "exact"
+      },
+      {
+        "description": "ConfigMap has key 'environment=production'",
+        "command": "kubectl get configmap app-config -o jsonpath='{.data.environment}'",
+        "expected_output": "production",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'config-reader' is Running",
+        "command": "kubectl get pod config-reader -o jsonpath='{.status.phase}'",
+        "expected_output": "Running",
+        "match": "exact"
+      },
+      {
+        "description": "ConfigMap is mounted at /etc/app-config",
+        "command": "kubectl exec config-reader -- ls /etc/app-config",
+        "expected_output": "environment",
+        "match": "contains"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete configmap app-config --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete pod config-reader --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

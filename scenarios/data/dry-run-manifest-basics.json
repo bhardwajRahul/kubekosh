@@ -1,0 +1,39 @@
+{
+  "id": "dry-run-manifest-basics",
+  "title": "Generating YAML Manifests",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Generating and Applying Manifests with Dry Run\n\nInstead of writing YAML from scratch, you can use `kubectl` to generate templates using `--dry-run=client -o yaml` and then apply them.\n\n**Your task:**\n\nUse `kubectl run` with `--dry-run=client -o yaml` to generate a Pod manifest for `web-pod` using image `httpd:alpine`, then pipe it directly to `kubectl apply -f -` to create the pod.\n\n```bash\nkubectl run web-pod --image=httpd:alpine --dry-run=client -o yaml | kubectl apply -f -\n```",
+  "hints": [
+    {
+      "title": "Combine dry-run with apply",
+      "body": "Chain kubectl run --dry-run=client -o yaml with kubectl apply -f - using a pipe.",
+      "command": "kubectl run web-pod --image=httpd:alpine --dry-run=client -o yaml | kubectl apply -f -"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Pod 'web-pod' exists",
+        "command": "kubectl get pod web-pod -o jsonpath='{.metadata.name}'",
+        "expected_output": "web-pod",
+        "match": "exact"
+      },
+      {
+        "description": "Pod uses httpd:alpine image",
+        "command": "kubectl get pod web-pod -o jsonpath='{.spec.containers[0].image}'",
+        "expected_output": "httpd:alpine",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod web-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

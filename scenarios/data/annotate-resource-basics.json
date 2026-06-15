@@ -1,0 +1,57 @@
+{
+  "id": "annotate-resource-basics",
+  "title": "Annotating Kubernetes Resources",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 3,
+  "description": "## Annotating Kubernetes Resources\n\nAnnotations attach arbitrary non-identifying metadata to Kubernetes objects — such as contact info, tool versions, or documentation URLs. Unlike labels, annotations **cannot** be used as selectors.\n\n**Your task:**\n\nA Deployment named `myapp` is running in the `default` namespace. Add the following annotations to it:\n- `contact=ops@company.com`\n- `reviewed=true`\n\n```bash\n# Verify:\nkubectl get deployment myapp -o jsonpath='{.metadata.annotations}'\n```",
+  "hints": [
+    {
+      "title": "kubectl annotate",
+      "body": "Use `kubectl annotate` to imperatively add or overwrite annotations on any resource.",
+      "command": "kubectl annotate deployment myapp contact=ops@company.com reviewed=true"
+    },
+    {
+      "title": "Overwrite an existing annotation",
+      "body": "If the annotation key already exists, pass `--overwrite` to update it.",
+      "command": "kubectl annotate deployment myapp contact=ops@company.com reviewed=true --overwrite"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment myapp --image=nginx:alpine --replicas=1 2>/dev/null || true"
+    },
+    {
+      "command": "kubectl rollout status deployment/myapp --timeout=60s"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Deployment 'myapp' exists",
+        "command": "kubectl get deployment myapp -o jsonpath='{.metadata.name}'",
+        "expected_output": "myapp",
+        "match": "exact"
+      },
+      {
+        "description": "Annotation 'contact' is ops@company.com",
+        "command": "kubectl get deployment myapp -o jsonpath='{.metadata.annotations.contact}'",
+        "expected_output": "ops@company.com",
+        "match": "exact"
+      },
+      {
+        "description": "Annotation 'reviewed' is true",
+        "command": "kubectl get deployment myapp -o jsonpath='{.metadata.annotations.reviewed}'",
+        "expected_output": "true",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment myapp --ignore-not-found"
+    }
+  ]
+}

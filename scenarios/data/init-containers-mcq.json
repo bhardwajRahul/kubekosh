@@ -1,0 +1,39 @@
+{
+  "id": "init-containers-mcq",
+  "title": "Init Containers Behaviour",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Init Containers Behaviour\n\nA pod spec defines two init containers (`init-db-check` and `init-config`) followed by one main app container (`web`).\n\nWhich statement **correctly** describes how Kubernetes runs these containers?",
+  "options": [
+    {
+      "id": "a",
+      "text": "All three containers start simultaneously; init containers simply have lower priority"
+    },
+    {
+      "id": "b",
+      "text": "Init containers run sequentially to completion before the main `web` container starts"
+    },
+    {
+      "id": "c",
+      "text": "The `web` container starts first, and init containers run as sidecars alongside it"
+    },
+    {
+      "id": "d",
+      "text": "Init containers cannot share volumes with the main container"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "Init containers always run **sequentially** and must each exit with a success (exit code 0) before the next one starts. Only after **all** init containers complete successfully does Kubernetes start the main application containers. They can share volumes with main containers, making them ideal for setup tasks like seeding configs, waiting for dependencies, or initialising databases.",
+  "hints": [
+    {
+      "title": "Init container execution order",
+      "body": "Check `kubectl explain pod.spec.initContainers`. Each init container runs to completion before the next begins, and all must succeed before app containers start.",
+      "command": "kubectl explain pod.spec.initContainers"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

@@ -1,0 +1,47 @@
+{
+  "id": "cks-runtime-class",
+  "title": "RuntimeClass for Sandboxed Workloads",
+  "category": "System Hardening",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 5,
+  "description": "## RuntimeClass for Stronger Workload Isolation\n\nKubernetes `RuntimeClass` lets you select an alternative container runtime (such as gVisor's `runsc`) for specific pods, providing stronger kernel-level isolation than the default `runc`.\n\n**Your task:**\n\n1. Create a `RuntimeClass` named `gvisor` with `handler: runsc`.\n2. Create a Pod named `sandbox-pod` using the `nginx:alpine` image that references this RuntimeClass via `spec.runtimeClassName: gvisor`.\n\n```bash\n# Verify the RuntimeClass:\nkubectl get runtimeclass gvisor\n# Verify the pod spec:\nkubectl get pod sandbox-pod -o jsonpath='{.spec.runtimeClassName}'\n```\n\n> **Note:** The pod may not reach `Running` state if `runsc` is not installed on the node — that is expected in this lab. Validation only checks the API object configuration.",
+  "hints": [
+    {
+      "title": "Create the RuntimeClass",
+      "body": "Use a manifest with `apiVersion: node.k8s.io/v1`, `kind: RuntimeClass`, and a `handler` field.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: node.k8s.io/v1\nkind: RuntimeClass\nmetadata:\n  name: gvisor\nhandler: runsc\nEOF"
+    },
+    {
+      "title": "Reference the RuntimeClass in a Pod",
+      "body": "Set `spec.runtimeClassName: gvisor` in the pod spec.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: sandbox-pod\nspec:\n  runtimeClassName: gvisor\n  containers:\n  - name: app\n    image: nginx:alpine\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "RuntimeClass 'gvisor' exists with handler runsc",
+        "command": "kubectl get runtimeclass gvisor -o jsonpath='{.handler}'",
+        "expected_output": "runsc",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'sandbox-pod' references RuntimeClass gvisor",
+        "command": "kubectl get pod sandbox-pod -o jsonpath='{.spec.runtimeClassName}'",
+        "expected_output": "gvisor",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod sandbox-pod --ignore-not-found --grace-period=0 --force"
+    },
+    {
+      "command": "kubectl delete runtimeclass gvisor --ignore-not-found"
+    }
+  ]
+}

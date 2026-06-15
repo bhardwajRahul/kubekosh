@@ -1,0 +1,43 @@
+{
+  "id": "deployment-rollback",
+  "title": "Rolling Back a Deployment",
+  "category": "Workloads & Scheduling",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 5,
+  "description": "## Rolling Back a Deployment\n\nA deployment `api-server` was mistakenly updated to a broken image. Your task is to roll it back to the previous working revision.\n\n**Your task:**\n\nRoll back the `api-server` deployment to its previous revision.\n\n```bash\n# Check rollout history\nkubectl rollout history deployment/api-server\n# Rollback\nkubectl rollout undo deployment/api-server\n```",
+  "hints": [
+    {
+      "title": "Undo a rollout",
+      "body": "`kubectl rollout undo deployment/<name>` reverts to the previous revision. Use `--to-revision=N` to go to a specific revision number.",
+      "command": "kubectl rollout undo deployment/api-server"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment api-server --image=nginx:1.24 --replicas=2 2>/dev/null || true"
+    },
+    {
+      "command": "kubectl rollout status deployment/api-server --timeout=60s"
+    },
+    {
+      "command": "kubectl set image deployment/api-server nginx=nginx:broken-image"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Deployment 'api-server' image rolled back to nginx:1.24",
+        "command": "kubectl get deployment api-server -o jsonpath='{.spec.template.spec.containers[0].image}'",
+        "expected_output": "nginx:1.24",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment api-server --ignore-not-found"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "services-mcq",
+  "title": "Kubernetes Service Types",
+  "category": "Networking",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 4,
+  "description": "## Choose the Right Service Type\n\nYou have a microservice running inside the cluster that needs to be reachable **from the internet** (external traffic). The cluster is hosted on a cloud provider (AWS/GCP/Azure).\n\nWhich **Service type** should you use?",
+  "options": [
+    {
+      "id": "a",
+      "text": "ClusterIP — the default service type, only reachable within the cluster"
+    },
+    {
+      "id": "b",
+      "text": "NodePort — opens a port on every node, accessible from outside if the node IP is reachable"
+    },
+    {
+      "id": "c",
+      "text": "LoadBalancer — provisions a cloud load balancer and assigns an external IP automatically"
+    },
+    {
+      "id": "d",
+      "text": "ExternalName — maps the service to a DNS name, not suitable for external ingress"
+    }
+  ],
+  "correct_option": "c",
+  "explanation": "`LoadBalancer` is the right choice for production external traffic on cloud-hosted clusters. It provisions a cloud provider load balancer (like an AWS ALB or GCP L4 LB) and assigns an external IP. `NodePort` works in theory but requires knowing node IPs and is not production-grade. `ClusterIP` is internal-only. `ExternalName` is for mapping services to external DNS names.",
+  "hints": [
+    {
+      "title": "Recall Service types",
+      "body": "There are 4 service types: ClusterIP (internal), NodePort (node-level), LoadBalancer (cloud LB), ExternalName (DNS alias). Each builds on the previous in terms of exposure level.",
+      "command": "kubectl explain service.spec.type"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

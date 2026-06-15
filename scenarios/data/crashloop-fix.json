@@ -1,0 +1,45 @@
+{
+  "id": "crashloop-fix",
+  "title": "Fix a CrashLoopBackOff Pod",
+  "category": "Troubleshooting",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 7,
+  "description": "## Fix a CrashLoopBackOff\n\nA deployment `crash-app` is in `CrashLoopBackOff` because it was deployed with a broken command.\n\n**Your task:**\n\nFix the `crash-app` deployment so all pods run successfully. The container should run `nginx -g 'daemon off;'` (the default nginx command). Update the deployment to remove the broken command override.\n\n```bash\n# Check what's wrong:\nkubectl describe deployment crash-app\nkubectl logs -l app=crash-app\n```",
+  "hints": [
+    {
+      "title": "Remove the broken command",
+      "body": "Use `kubectl patch` or `kubectl edit deployment crash-app`. Remove the `command` override so nginx uses its default entrypoint.",
+      "command": "kubectl patch deployment crash-app --type=json -p='[{\"op\":\"remove\",\"path\":\"/spec/template/spec/containers/0/command\"}]'"
+    },
+    {
+      "title": "Alternative: kubectl set",
+      "body": "You can also edit the deployment directly and delete the command field.",
+      "command": "kubectl edit deployment crash-app"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment crash-app --image=nginx:alpine --replicas=1 2>/dev/null || true"
+    },
+    {
+      "command": "kubectl patch deployment crash-app --type=json -p='[{\"op\":\"add\",\"path\":\"/spec/template/spec/containers/0/command\",\"value\":[\"/bin/sh\",\"-c\",\"exit 1\"]}]'"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Deployment 'crash-app' has 1 ready replica",
+        "command": "kubectl get deployment crash-app -o jsonpath='{.status.readyReplicas}' 2>/dev/null | grep -v '^$' || echo 0",
+        "expected_output": "1",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment crash-app --ignore-not-found"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "cks-apparmor-profile",
+  "title": "AppArmor Profiles",
+  "category": "Workload Security",
+  "difficulty": "Hard",
+  "type": "task",
+  "weight": 5,
+  "description": "## AppArmor Profiles\n\nAppArmor is a Linux kernel security module that restricts programs' capabilities. In Kubernetes 1.30+, it is supported natively in the securityContext.\n\n**Your task:**\n\nCreate a Pod named `apparmor-pod` using the `nginx:alpine` image. Configure its Pod-level `securityContext` to use the `RuntimeDefault` AppArmor profile.\n\n```bash\n# Verify the profile is set:\nkubectl get pod apparmor-pod -o yaml | grep appArmor\n```",
+  "hints": [
+    {
+      "title": "Set AppArmor Profile",
+      "body": "Add `appArmorProfile: { type: RuntimeDefault }` under `spec.securityContext`.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: apparmor-pod\nspec:\n  securityContext:\n    appArmorProfile:\n      type: RuntimeDefault\n  containers:\n  - name: app\n    image: nginx:alpine\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "appArmorProfile type is RuntimeDefault",
+        "command": "kubectl get pod apparmor-pod -o jsonpath='{.spec.securityContext.appArmorProfile.type}'",
+        "expected_output": "RuntimeDefault",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod apparmor-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

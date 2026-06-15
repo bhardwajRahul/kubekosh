@@ -1,0 +1,33 @@
+{
+  "id": "cks-automount-token",
+  "title": "Disable ServiceAccount Token",
+  "category": "Workload Security",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 3,
+  "description": "## Service Account Tokens\n\nBy default, Kubernetes automatically mounts a ServiceAccount API token into every Pod, which can be a significant security risk if the Pod is compromised.\n\n**Your task:**\n\nCreate a Pod named `no-token-pod` using the `alpine` image (with command `sleep 3600`). Explicitly disable the automatic mounting of the ServiceAccount token for this pod.\n\n```bash\n# Verify token is not mounted:\nkubectl get pod no-token-pod -o yaml | grep automount\n```",
+  "hints": [
+    {
+      "title": "automountServiceAccountToken",
+      "body": "Set `automountServiceAccountToken: false` in the pod's spec.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: no-token-pod\nspec:\n  automountServiceAccountToken: false\n  containers:\n  - name: app\n    image: alpine\n    command: [\"sleep\", \"3600\"]\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "automountServiceAccountToken is false",
+        "command": "kubectl get pod no-token-pod -o jsonpath='{.spec.automountServiceAccountToken}'",
+        "expected_output": "false",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod no-token-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

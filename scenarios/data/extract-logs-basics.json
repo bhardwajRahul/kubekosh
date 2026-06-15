@@ -1,0 +1,42 @@
+{
+  "id": "extract-logs-basics",
+  "title": "Extract Container Logs",
+  "category": "Troubleshooting",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Extract Pod Logs\n\nA pod named `log-generator` is running and emitting log lines every second.\n\n**Your task:**\n\nUse `kubectl logs` to inspect the logs and confirm that the message `ERROR: Database connection failed` appears in the output.\n\n> Tip: Use `kubectl logs log-generator | grep ERROR` to filter.",
+  "hints": [
+    {
+      "title": "View pod logs",
+      "body": "Use kubectl logs to stream the output of a running container.",
+      "command": "kubectl logs log-generator"
+    },
+    {
+      "title": "Filter logs",
+      "body": "Pipe kubectl logs into grep to find specific messages.",
+      "command": "kubectl logs log-generator | grep ERROR"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl run log-generator --image=busybox:1.36 --command -- sh -c 'echo \"ERROR: Database connection failed\" && sleep 3600'"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Pod log-generator emits ERROR: Database connection failed",
+        "command": "kubectl logs log-generator 2>/dev/null",
+        "expected_output": "ERROR: Database connection failed",
+        "match": "contains"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod log-generator --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

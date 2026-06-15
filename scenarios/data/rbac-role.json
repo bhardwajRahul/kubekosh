@@ -1,0 +1,79 @@
+{
+  "id": "rbac-role",
+  "title": "RBAC: Create Role and RoleBinding",
+  "category": "Security",
+  "difficulty": "Hard",
+  "type": "task",
+  "weight": 9,
+  "description": "## Restrict Namespace Access with RBAC\n\nA CI/CD service account needs read-only access to pods and deployments in the `staging` namespace.\n\n**Your tasks:**\n1. Create namespace `staging`\n2. Create a **ServiceAccount** named `ci-reader` in the `staging` namespace\n3. Create a **Role** named `read-workloads` in `staging` that allows `get`, `list`, `watch` on `pods` and `deployments`\n4. Create a **RoleBinding** named `ci-reader-binding` that binds `read-workloads` to the `ci-reader` ServiceAccount\n5. Verify the ServiceAccount **can** list pods but **cannot** create them",
+  "hints": [
+    {
+      "title": "Create namespace and service account",
+      "body": "Create these first before the role, as the RoleBinding references both.",
+      "command": "kubectl create namespace staging\nkubectl create serviceaccount ci-reader -n staging"
+    },
+    {
+      "title": "Create the Role",
+      "body": "Use `kubectl create role` with multiple `--verb` and `--resource` flags.",
+      "command": "kubectl create role read-workloads \\\n  --verb=get,list,watch \\\n  --resource=pods,deployments \\\n  -n staging"
+    },
+    {
+      "title": "Bind the Role",
+      "body": "RoleBinding ties a Role to a subject. ServiceAccount subjects need namespace-qualified names.",
+      "command": "kubectl create rolebinding ci-reader-binding \\\n  --role=read-workloads \\\n  --serviceaccount=staging:ci-reader \\\n  -n staging"
+    },
+    {
+      "title": "Verify permissions with auth can-i",
+      "body": "Use `--as` to impersonate the service account and test its permissions.",
+      "command": "kubectl auth can-i list pods --as=system:serviceaccount:staging:ci-reader -n staging\nkubectl auth can-i create pods --as=system:serviceaccount:staging:ci-reader -n staging"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "description": "Validates the full RBAC chain: namespace, SA, role, rolebinding, and effective permissions.",
+    "commands": [
+      {
+        "description": "Namespace 'staging' exists",
+        "command": "kubectl get namespace staging -o jsonpath='{.metadata.name}'",
+        "expected_output": "staging",
+        "match": "exact"
+      },
+      {
+        "description": "ServiceAccount 'ci-reader' exists in staging",
+        "command": "kubectl get serviceaccount ci-reader -n staging -o jsonpath='{.metadata.name}'",
+        "expected_output": "ci-reader",
+        "match": "exact"
+      },
+      {
+        "description": "Role 'read-workloads' exists in staging",
+        "command": "kubectl get role read-workloads -n staging -o jsonpath='{.metadata.name}'",
+        "expected_output": "read-workloads",
+        "match": "exact"
+      },
+      {
+        "description": "RoleBinding 'ci-reader-binding' exists",
+        "command": "kubectl get rolebinding ci-reader-binding -n staging -o jsonpath='{.metadata.name}'",
+        "expected_output": "ci-reader-binding",
+        "match": "exact"
+      },
+      {
+        "description": "ci-reader CAN list pods",
+        "command": "kubectl auth can-i list pods --as=system:serviceaccount:staging:ci-reader -n staging",
+        "expected_output": "yes",
+        "match": "exact"
+      },
+      {
+        "description": "ci-reader CANNOT create pods",
+        "command": "kubectl auth can-i create pods --as=system:serviceaccount:staging:ci-reader -n staging",
+        "expected_output": "no",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete namespace staging --ignore-not-found --wait=false"
+    }
+  ]
+}

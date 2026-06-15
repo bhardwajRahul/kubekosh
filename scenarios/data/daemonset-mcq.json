@@ -1,0 +1,39 @@
+{
+  "id": "daemonset-mcq",
+  "title": "Understanding DaemonSets",
+  "category": "Workloads",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Understanding DaemonSets\n\nYour team wants to deploy a **log collector agent** that must run on **every node** in the cluster, including any nodes added in the future.\n\nWhich Kubernetes resource is the best fit?",
+  "options": [
+    {
+      "id": "a",
+      "text": "A `Deployment` with `replicas` set to the number of nodes"
+    },
+    {
+      "id": "b",
+      "text": "A `StatefulSet` with `replicas` matching the node count"
+    },
+    {
+      "id": "c",
+      "text": "A `DaemonSet`, which automatically places one pod per node and adapts as nodes join or leave"
+    },
+    {
+      "id": "d",
+      "text": "A `CronJob` that runs `kubectl create pod` on each node every minute"
+    }
+  ],
+  "correct_option": "c",
+  "explanation": "A **DaemonSet** guarantees that exactly one copy of a pod runs on every (or selected) node. As nodes are added to the cluster, the DaemonSet controller automatically schedules the pod on them; when nodes are removed, the pods are garbage-collected. Classic use cases: log shippers (Fluentd, Filebeat), monitoring agents (Prometheus Node Exporter), and CNI plugins. A Deployment with fixed replicas does NOT guarantee one-pod-per-node coverage.",
+  "hints": [
+    {
+      "title": "When to use a DaemonSet",
+      "body": "DaemonSets are ideal for cluster-level infrastructure: log collection, metrics agents, node monitoring, and CNI/CSI plugins that need to run on every node.",
+      "command": "kubectl explain daemonset.spec"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

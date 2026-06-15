@@ -1,0 +1,39 @@
+{
+  "id": "etcd-backup-mcq",
+  "title": "etcd Backup and Restore",
+  "category": "Cluster Administration",
+  "difficulty": "Hard",
+  "type": "mcq",
+  "weight": 5,
+  "description": "## etcd Backup and Restore\n\nIn the CKA exam, you may need to back up and restore an etcd cluster. Which command correctly creates an etcd snapshot?\n\n```bash\n# The etcdctl binary is available on the control-plane node.\n# Assume certificates are at /etc/kubernetes/pki/etcd/\n```",
+  "options": [
+    {
+      "id": "a",
+      "text": "`etcdctl snapshot save /backup/etcd.db` (no flags needed — etcdctl auto-detects certs)"
+    },
+    {
+      "id": "b",
+      "text": "`ETCDCTL_API=3 etcdctl snapshot save /backup/etcd.db --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.crt --key=/etc/kubernetes/pki/etcd/server.key`"
+    },
+    {
+      "id": "c",
+      "text": "`kubectl exec etcd-controlplane -- etcdctl backup --data-dir=/var/lib/etcd`"
+    },
+    {
+      "id": "d",
+      "text": "`etcdctl snapshot save /backup/etcd.db --kubeconfig=/root/.kube/config`"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "etcd requires **TLS certificates** and explicit endpoint specification. You must set `ETCDCTL_API=3`, point to the etcd endpoint (`https://127.0.0.1:2379` on control-plane), and provide the CA cert, server cert, and key from `/etc/kubernetes/pki/etcd/`. To restore: `ETCDCTL_API=3 etcdctl snapshot restore /backup/etcd.db --data-dir=/var/lib/etcd-restored`, then update the etcd static pod manifest to point to the new data dir.",
+  "hints": [
+    {
+      "title": "etcdctl API version",
+      "body": "Always set `ETCDCTL_API=3`. etcdctl v2 and v3 APIs are different — the CKA exam uses v3. The certs live at `/etc/kubernetes/pki/etcd/`.",
+      "command": "ETCDCTL_API=3 etcdctl snapshot status /backup/etcd.db --write-out=table"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

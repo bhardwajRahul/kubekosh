@@ -1,0 +1,33 @@
+{
+  "id": "cks-mcq-api-server",
+  "title": "API Server Authentication",
+  "category": "Cluster Setup",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 2,
+  "description": "To secure the `kube-apiserver`, you should prevent unauthorized users from interacting with the cluster anonymously. Which flag is used to disable anonymous authentication on the API server?",
+  "options": [
+    {
+      "id": "a",
+      "text": "--disable-anonymous=true"
+    },
+    {
+      "id": "b",
+      "text": "--anonymous-auth=false"
+    },
+    {
+      "id": "c",
+      "text": "--auth-mode=Node,RBAC"
+    },
+    {
+      "id": "d",
+      "text": "--secure-port=6443"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "The `--anonymous-auth=false` flag instructs the kube-apiserver to reject any request that is not associated with a known user or service account. By default, it is enabled.",
+  "hints": [],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

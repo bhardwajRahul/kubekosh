@@ -1,0 +1,57 @@
+{
+  "id": "broken-deployment",
+  "title": "Debug a Failing Deployment",
+  "category": "Troubleshooting",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 8,
+  "description": "## Fix the Broken Deployment\n\nA deployment has been pre-created in the `debug` namespace but its pods are not running.\n\n**Your task:** Identify the problem and fix it so that the deployment has **all 3 pods in Ready state**.\n\n> Start by describing the deployment and its pods to find clues about what's wrong.",
+  "hints": [
+    {
+      "title": "Inspect the deployment",
+      "body": "Start by listing pods in the debug namespace and describing the failing ones.",
+      "command": "kubectl get pods -n debug\nkubectl describe pod -n debug -l app=broken-app"
+    },
+    {
+      "title": "Check events",
+      "body": "The Events section in `kubectl describe` usually tells you exactly what's wrong — look for ImagePullBackOff, OOMKilled, or probe failures.",
+      "command": "kubectl describe deployment broken-app -n debug"
+    },
+    {
+      "title": "Fix the image tag",
+      "body": "If the image tag doesn't exist, update it to a valid one using `kubectl set image`.",
+      "command": "kubectl set image deployment/broken-app app=nginx:1.25 -n debug"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create namespace debug"
+    },
+    {
+      "command": "kubectl create deployment broken-app --image=nginx:invalid-tag-99999 --replicas=3 -n debug"
+    }
+  ],
+  "validation": {
+    "description": "Checks that the broken-app deployment in the debug namespace has 3 ready replicas.",
+    "commands": [
+      {
+        "description": "Deployment 'broken-app' has 3 ready replicas",
+        "command": "kubectl get deployment broken-app -n debug -o jsonpath='{.status.readyReplicas}' 2>/dev/null | grep -v '^$' || echo 0",
+        "expected_output": "3",
+        "match": "exact"
+      },
+      {
+        "description": "No pods in ImagePullBackOff state",
+        "command": "kubectl get pods -n debug --no-headers 2>/dev/null | awk '{print $3}' | grep -c 'ImagePullBackOff\\|ErrImagePull' || true",
+        "expected_output": "0",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "debug",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete namespace debug --ignore-not-found --wait=false"
+    }
+  ]
+}

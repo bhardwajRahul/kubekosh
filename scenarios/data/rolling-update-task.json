@@ -1,0 +1,51 @@
+{
+  "id": "rolling-update-task",
+  "title": "Perform a Rolling Update",
+  "category": "Workloads",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 5,
+  "description": "## Perform a Rolling Update\n\nA Deployment named `app-v1` is running `nginx:1.24`. Your team needs to upgrade it to `nginx:1.25`.\n\n**Your task:**\n\nUpdate the image of the `app-v1` deployment to `nginx:1.25` using a rolling update strategy. Ensure all replicas are running the new image.\n\n```bash\n# Hint: kubectl set image can update an image in-place\nkubectl set image deployment/<name> <container>=<image>\n```",
+  "hints": [
+    {
+      "title": "Set a new image on a Deployment",
+      "body": "Use `kubectl set image deployment/<name> <container-name>=<new-image>` to trigger a rolling update.",
+      "command": "kubectl set image deployment/app-v1 nginx=nginx:1.25"
+    },
+    {
+      "title": "Check rollout progress",
+      "body": "Monitor the rollout with `kubectl rollout status`. Once complete, all pods will run the new image.",
+      "command": "kubectl get deployment app-v1 -o jsonpath='{.spec.template.spec.containers[0].image}'"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment app-v1 --image=nginx:1.24 --replicas=2"
+    },
+    {
+      "command": "kubectl rollout status deployment/app-v1 --timeout=60s"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Deployment 'app-v1' image is nginx:1.25",
+        "command": "kubectl get deployment app-v1 -o jsonpath='{.spec.template.spec.containers[0].image}'",
+        "expected_output": "nginx:1.25",
+        "match": "exact"
+      },
+      {
+        "description": "Deployment has 2 ready replicas",
+        "command": "kubectl get deployment app-v1 -o jsonpath='{.status.readyReplicas}' 2>/dev/null | grep -v '^$' || echo 0",
+        "expected_output": "2",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment app-v1 --ignore-not-found"
+    }
+  ]
+}

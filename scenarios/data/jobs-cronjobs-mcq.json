@@ -1,0 +1,39 @@
+{
+  "id": "jobs-cronjobs-mcq",
+  "title": "Jobs vs CronJobs",
+  "category": "Workloads",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Jobs vs CronJobs\n\nA data-processing team needs to run a database backup script **every night at midnight**. Which Kubernetes resource should they use, and why?",
+  "options": [
+    {
+      "id": "a",
+      "text": "A `Job` — because Jobs run a task until it completes successfully, including on a nightly schedule"
+    },
+    {
+      "id": "b",
+      "text": "A `CronJob` — because it creates Jobs on a time-based schedule (cron syntax) and is designed for recurring tasks"
+    },
+    {
+      "id": "c",
+      "text": "A `Deployment` with `restartPolicy: OnFailure` — deployments keep tasks running on schedule"
+    },
+    {
+      "id": "d",
+      "text": "A `DaemonSet` — because it ensures exactly one backup process per node nightly"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "A **CronJob** is the right resource for recurring scheduled tasks. It uses standard cron syntax (e.g. `0 0 * * *` for midnight daily) and creates a new `Job` object at each scheduled time. A plain `Job` runs once to completion — you would need external scheduling to run it nightly. Deployments are for long-running services, and DaemonSets run pods on every node.",
+  "hints": [
+    {
+      "title": "CronJob syntax",
+      "body": "CronJobs use standard cron format: `minute hour day-of-month month day-of-week`. For midnight daily: `0 0 * * *`.",
+      "command": "kubectl explain cronjob.spec.schedule"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

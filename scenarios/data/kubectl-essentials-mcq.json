@@ -1,0 +1,39 @@
+{
+  "id": "kubectl-essentials-mcq",
+  "title": "Essential kubectl Commands",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 2,
+  "description": "## Essential kubectl Commands\n\nYou need to quickly view the **logs** of a container named `api` inside a pod named `backend-7d9f`. The pod has multiple containers.\n\nWhich command is correct?",
+  "options": [
+    {
+      "id": "a",
+      "text": "`kubectl describe pod backend-7d9f`"
+    },
+    {
+      "id": "b",
+      "text": "`kubectl logs backend-7d9f`"
+    },
+    {
+      "id": "c",
+      "text": "`kubectl logs backend-7d9f -c api`"
+    },
+    {
+      "id": "d",
+      "text": "`kubectl exec backend-7d9f -- cat /var/log/api.log`"
+    }
+  ],
+  "correct_option": "c",
+  "explanation": "When a pod has **multiple containers**, you must specify which container's logs you want using the `-c <container-name>` flag: `kubectl logs <pod-name> -c <container-name>`. Without `-c`, kubectl returns an error if the pod has more than one container. `kubectl describe` shows metadata and events, not live logs. `kubectl exec` can work but is cumbersome and container-runtime dependent.",
+  "hints": [
+    {
+      "title": "kubectl logs flags",
+      "body": "Key flags: `-c` (container name for multi-container pods), `-f` (follow/stream), `--previous` (crashed container logs), `--since=1h` (time filter).",
+      "command": "kubectl logs --help | head -30"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

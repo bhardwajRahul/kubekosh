@@ -1,0 +1,37 @@
+{
+  "id": "jsonpath-basics",
+  "title": "JSONPath Data Extraction",
+  "category": "Core Concepts",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 5,
+  "description": "## Extracting Data with JSONPath\n\nKubectl allows you to extract specific fields from resource manifests using JSONPath, which is incredibly useful for scripting and automation.\n\n**Your task:**\n\nA deployment named `hidden-app` is running in the `default` namespace. Use `kubectl` with a JSONPath expression to output **only the container image name** used by that deployment.\n\n> Expected output: `nginx:1.25.3`",
+  "hints": [
+    {
+      "title": "JSONPath syntax",
+      "body": "The image is located at `.spec.template.spec.containers[0].image`. Use -o jsonpath to extract it.",
+      "command": "kubectl get deployment hidden-app -o jsonpath='{.spec.template.spec.containers[0].image}'"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create deployment hidden-app --image=nginx:1.25.3"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "kubectl jsonpath returns the correct image",
+        "command": "kubectl get deployment hidden-app -o jsonpath='{.spec.template.spec.containers[0].image}'",
+        "expected_output": "nginx:1.25.3",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment hidden-app --ignore-not-found"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "cks-network-policy",
+  "title": "Default Deny Network Policy",
+  "category": "Network Security",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 5,
+  "description": "## Network Policies\n\nIn a zero-trust architecture, you should deny all traffic by default and explicitly allow what is needed.\n\n**Your task:**\n\nCreate a NetworkPolicy named `default-deny-all` in the `default` namespace that denies all ingress and egress traffic for all pods in the namespace.\n\n```bash\n# Verify your policy:\nkubectl get networkpolicy default-deny-all\n```",
+  "hints": [
+    {
+      "title": "Default Deny YAML",
+      "body": "Use a podSelector with an empty matchLabels `{}` to select all pods, and provide empty lists for ingress and egress.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny-all\n  namespace: default\nspec:\n  podSelector: {}\n  policyTypes:\n  - Ingress\n  - Egress\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "NetworkPolicy default-deny-all exists",
+        "command": "kubectl get networkpolicy default-deny-all -o jsonpath='{.metadata.name}'",
+        "expected_output": "default-deny-all",
+        "match": "exact"
+      },
+      {
+        "description": "Policy applies to all pods (empty podSelector)",
+        "command": "kubectl get networkpolicy default-deny-all -o jsonpath='{.spec.podSelector.matchLabels}'",
+        "expected_output": "",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete networkpolicy default-deny-all --ignore-not-found"
+    }
+  ]
+}

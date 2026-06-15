@@ -1,0 +1,51 @@
+{
+  "id": "cks-rbac-least-privilege",
+  "title": "RBAC Least Privilege",
+  "category": "Cluster Security",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 4,
+  "description": "## Role-Based Access Control\n\nService Accounts should only be granted the permissions they explicitly need.\n\n**Your task:**\n\nCreate a Role named `pod-reader` in the `default` namespace that only allows the verbs `get`, `list`, and `watch` on the `pods` resource. Then, bind this Role to a ServiceAccount named `read-only-sa` using a RoleBinding named `read-only-binding`.\n\n```bash\n# Verify your RBAC setup:\nkubectl auth can-i list pods --as=system:serviceaccount:default:read-only-sa\n```",
+  "hints": [
+    {
+      "title": "Imperative commands",
+      "body": "You can create all 3 resources using imperative commands: create serviceaccount, create role, create rolebinding.",
+      "command": "kubectl create sa read-only-sa && kubectl create role pod-reader --verb=get,list,watch --resource=pods && kubectl create rolebinding read-only-binding --role=pod-reader --serviceaccount=default:read-only-sa"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "ServiceAccount read-only-sa exists",
+        "command": "kubectl get sa read-only-sa -o jsonpath='{.metadata.name}'",
+        "expected_output": "read-only-sa",
+        "match": "exact"
+      },
+      {
+        "description": "Role allows list pods",
+        "command": "kubectl auth can-i list pods --as=system:serviceaccount:default:read-only-sa",
+        "expected_output": "yes",
+        "match": "exact"
+      },
+      {
+        "description": "Role denies delete pods",
+        "command": "kubectl auth can-i delete pods --as=system:serviceaccount:default:read-only-sa",
+        "expected_output": "no",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete sa read-only-sa --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete role pod-reader --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete rolebinding read-only-binding --ignore-not-found"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "node-taint-toleration",
+  "title": "Taints and Tolerations",
+  "category": "Cluster Administration",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 7,
+  "description": "## Taints and Tolerations\n\nTaints allow a node to **repel** pods. A toleration on a pod allows it to be scheduled onto a tainted node.\n\nThe node `k8s-lab` has been tainted with `env=gpu:NoSchedule`.\n\n**Your task:**\n\nCreate a Pod named `gpu-pod` using `nginx:alpine` that tolerates the taint `env=gpu:NoSchedule` so it can be scheduled on this node.\n\n```bash\nkubectl describe node k8s-lab | grep -A5 Taints\n```",
+  "hints": [
+    {
+      "title": "Toleration structure",
+      "body": "Add a `tolerations` block under `spec`. Match `key`, `operator`, `value`, and `effect` to the node taint.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: gpu-pod\nspec:\n  tolerations:\n  - key: \"env\"\n    operator: \"Equal\"\n    value: \"gpu\"\n    effect: \"NoSchedule\"\n  containers:\n  - name: app\n    image: nginx:alpine\nEOF"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl taint nodes k8s-lab env=gpu:NoSchedule --overwrite=true 2>/dev/null || true"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Node has taint env=gpu:NoSchedule",
+        "command": "kubectl get node k8s-lab -o jsonpath='{.spec.taints[*].key}'",
+        "expected_output": "env",
+        "match": "contains"
+      },
+      {
+        "description": "Pod 'gpu-pod' has toleration for key 'env'",
+        "command": "kubectl get pod gpu-pod -o jsonpath='{.spec.tolerations[*].key}'",
+        "expected_output": "env",
+        "match": "contains"
+      },
+      {
+        "description": "Pod 'gpu-pod' toleration effect is NoSchedule",
+        "command": "kubectl get pod gpu-pod -o jsonpath='{.spec.tolerations[*].effect}'",
+        "expected_output": "NoSchedule",
+        "match": "contains"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl taint nodes k8s-lab env=gpu:NoSchedule- 2>/dev/null || true"
+    },
+    {
+      "command": "kubectl delete pod gpu-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "id": "pv-pvc-mount",
+  "title": "Persistent Storage with PV and PVC",
+  "category": "Storage",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 7,
+  "description": "## Attach Persistent Storage to a Pod\n\nA stateful application needs data to survive pod restarts.\n\n**Your tasks:**\n1. Create a **PersistentVolumeClaim** named `local-pvc` in the `default` namespace requesting `200Mi` with:\n   - Access mode: `ReadWriteOnce`\n   - StorageClass: `local-path` (available in this cluster via k3s)\n2. Create a **Pod** named `storage-pod` using image `nginx:1.25` that mounts the PVC at `/data`\n3. Write a file inside the pod at `/data/hello.txt` with content `hello-k8s`",
+  "hints": [
+    {
+      "title": "Create the PVC",
+      "body": "Use storageClassName: local-path to use the k3s built-in dynamic provisioner. No PV needs to be created manually.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: local-pvc\nspec:\n  accessModes: [ReadWriteOnce]\n  storageClassName: local-path\n  resources:\n    requests:\n      storage: 200Mi\nEOF"
+    },
+    {
+      "title": "Create the Pod with PVC mount",
+      "body": "Reference the PVC by name under volumes and mount it in the container.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: storage-pod\nspec:\n  containers:\n  - name: app\n    image: nginx:1.25\n    volumeMounts:\n    - name: data\n      mountPath: /data\n  volumes:\n  - name: data\n    persistentVolumeClaim:\n      claimName: local-pvc\nEOF"
+    },
+    {
+      "title": "Write file into the pod",
+      "body": "Use kubectl exec to write a file into the mounted volume.",
+      "command": "kubectl exec storage-pod -- sh -c 'echo hello-k8s > /data/hello.txt'"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "description": "Validates PV, PVC binding, pod running, and file written to the volume.",
+    "commands": [
+      {
+        "description": "PVC local-pvc is Bound",
+        "command": "kubectl get pvc local-pvc -o jsonpath='{.status.phase}'",
+        "expected_output": "Bound",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'storage-pod' is Running",
+        "command": "kubectl get pod storage-pod -o jsonpath='{.status.phase}'",
+        "expected_output": "Running",
+        "match": "exact"
+      },
+      {
+        "description": "File /data/hello.txt contains 'hello-k8s'",
+        "command": "kubectl exec storage-pod -- cat /data/hello.txt",
+        "expected_output": "hello-k8s",
+        "match": "contains"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod storage-pod --ignore-not-found --grace-period=0 --force"
+    },
+    {
+      "command": "kubectl delete pvc local-pvc --ignore-not-found"
+    }
+  ]
+}

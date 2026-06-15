@@ -1,0 +1,59 @@
+{
+  "id": "rbac-clusterrole",
+  "title": "ClusterRole and ClusterRoleBinding",
+  "category": "Cluster Administration",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 8,
+  "description": "## ClusterRole and ClusterRoleBinding\n\nRBAC **ClusterRoles** grant permissions cluster-wide (across all namespaces), unlike Roles which are namespace-scoped.\n\n**Your task:**\n\n1. Create a **ClusterRole** named `pod-reader` that allows `get`, `list`, `watch` on `pods`\n2. Create a **ClusterRoleBinding** named `pod-reader-binding` that binds `pod-reader` to the ServiceAccount `default` in the `default` namespace\n\n```bash\nkubectl create clusterrole --help\nkubectl create clusterrolebinding --help\n```",
+  "hints": [
+    {
+      "title": "Create the ClusterRole",
+      "body": "Use `kubectl create clusterrole` with `--verb` and `--resource` flags.",
+      "command": "kubectl create clusterrole pod-reader --verb=get,list,watch --resource=pods"
+    },
+    {
+      "title": "Create the ClusterRoleBinding",
+      "body": "Bind the ClusterRole to a ServiceAccount using `--serviceaccount=namespace:name`.",
+      "command": "kubectl create clusterrolebinding pod-reader-binding --clusterrole=pod-reader --serviceaccount=default:default"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "ClusterRole 'pod-reader' exists",
+        "command": "kubectl get clusterrole pod-reader -o jsonpath='{.metadata.name}'",
+        "expected_output": "pod-reader",
+        "match": "exact"
+      },
+      {
+        "description": "ClusterRole allows 'get' on pods",
+        "command": "kubectl get clusterrole pod-reader -o jsonpath='{.rules[0].verbs[*]}'",
+        "expected_output": "get",
+        "match": "contains"
+      },
+      {
+        "description": "ClusterRoleBinding 'pod-reader-binding' exists",
+        "command": "kubectl get clusterrolebinding pod-reader-binding -o jsonpath='{.metadata.name}'",
+        "expected_output": "pod-reader-binding",
+        "match": "exact"
+      },
+      {
+        "description": "Binding references the 'pod-reader' ClusterRole",
+        "command": "kubectl get clusterrolebinding pod-reader-binding -o jsonpath='{.roleRef.name}'",
+        "expected_output": "pod-reader",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete clusterrole pod-reader --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete clusterrolebinding pod-reader-binding --ignore-not-found"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "id": "cks-tls-ingress",
+  "title": "Secure Ingress with TLS",
+  "category": "Network Security",
+  "difficulty": "Hard",
+  "type": "task",
+  "weight": 7,
+  "description": "## Secure Ingress with TLS\n\nExposing applications over HTTPS requires a TLS certificate stored as a Kubernetes Secret of type `kubernetes.io/tls`. The Ingress controller uses this secret to terminate TLS connections.\n\n**Your task:**\n\n1. A self-signed TLS certificate has been pre-generated at `/tmp/tls.crt` and `/tmp/tls.key`.\n2. A deployment `tls-app` and service `tls-svc` are already running.\n3. Create a **TLS Secret** named `app-tls` from the cert files.\n4. Create an **Ingress** named `tls-ingress` that:\n   - Routes traffic for host `secure.lab.local` to service `tls-svc` on port `80`\n   - Terminates TLS using the secret `app-tls`",
+  "hints": [
+    {
+      "title": "Create the TLS Secret",
+      "body": "Use `kubectl create secret tls` with `--cert` and `--key` flags pointing to the pre-generated files.",
+      "command": "kubectl create secret tls app-tls --cert=/tmp/tls.crt --key=/tmp/tls.key"
+    },
+    {
+      "title": "Create the TLS Ingress",
+      "body": "Add a `spec.tls[]` block referencing the secret name alongside `spec.rules[]`.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: tls-ingress\nspec:\n  tls:\n  - hosts:\n    - secure.lab.local\n    secretName: app-tls\n  rules:\n  - host: secure.lab.local\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: tls-svc\n            port:\n              number: 80\nEOF"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /tmp/tls.key -out /tmp/tls.crt -subj '/CN=secure.lab.local' 2>/dev/null"
+    },
+    {
+      "command": "kubectl create deployment tls-app --image=nginx:alpine --replicas=1 2>/dev/null || true"
+    },
+    {
+      "command": "kubectl expose deployment tls-app --name=tls-svc --port=80 --target-port=80 2>/dev/null || true"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "Secret 'app-tls' is of type kubernetes.io/tls",
+        "command": "kubectl get secret app-tls -o jsonpath='{.type}'",
+        "expected_output": "kubernetes.io/tls",
+        "match": "exact"
+      },
+      {
+        "description": "Ingress 'tls-ingress' exists",
+        "command": "kubectl get ingress tls-ingress -o jsonpath='{.metadata.name}'",
+        "expected_output": "tls-ingress",
+        "match": "exact"
+      },
+      {
+        "description": "Ingress uses TLS secret 'app-tls'",
+        "command": "kubectl get ingress tls-ingress -o jsonpath='{.spec.tls[0].secretName}'",
+        "expected_output": "app-tls",
+        "match": "exact"
+      },
+      {
+        "description": "Ingress routes host secure.lab.local",
+        "command": "kubectl get ingress tls-ingress -o jsonpath='{.spec.rules[0].host}'",
+        "expected_output": "secure.lab.local",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete ingress tls-ingress --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete secret app-tls --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete svc tls-svc --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete deployment tls-app --ignore-not-found"
+    },
+    {
+      "command": "rm -f /tmp/tls.crt /tmp/tls.key"
+    }
+  ]
+}

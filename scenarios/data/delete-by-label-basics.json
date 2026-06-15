@@ -1,0 +1,58 @@
+{
+  "id": "delete-by-label-basics",
+  "title": "Bulk Deletion by Label",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 3,
+  "description": "## Bulk Deletion by Label\n\nYou can use label selectors (`-l`) to perform bulk operations on resources.\n\n**Your task:**\n\nThere are 5 pods running in the default namespace. Delete **only** the pods that have the label `env=dev`. Leave the `env=prod` pods running.\n\n```bash\n# Verify which pods are left:\nkubectl get pods --show-labels\n```",
+  "hints": [
+    {
+      "title": "Delete with selector",
+      "body": "Use `kubectl delete pods` with the `-l` flag.",
+      "command": "kubectl delete pods -l env=dev"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl run dev-1 --image=nginx:alpine -l env=dev"
+    },
+    {
+      "command": "kubectl run dev-2 --image=nginx:alpine -l env=dev"
+    },
+    {
+      "command": "kubectl run dev-3 --image=nginx:alpine -l env=dev"
+    },
+    {
+      "command": "kubectl run prod-1 --image=nginx:alpine -l env=prod"
+    },
+    {
+      "command": "kubectl run prod-2 --image=nginx:alpine -l env=prod"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "No 'env=dev' pods exist",
+        "command": "kubectl get pods -l env=dev --no-headers 2>/dev/null | wc -l | tr -d ' '",
+        "expected_output": "0",
+        "match": "exact"
+      },
+      {
+        "description": "Prod pods are still running",
+        "command": "kubectl get pods -l env=prod --no-headers 2>/dev/null | wc -l | tr -d ' '",
+        "expected_output": "2",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pods -l env=dev --ignore-not-found --grace-period=0 --force"
+    },
+    {
+      "command": "kubectl delete pods -l env=prod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "limitrange-task",
+  "title": "LimitRange for Default Container Limits",
+  "category": "Workloads & Scheduling",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 6,
+  "description": "## LimitRange\n\nA **LimitRange** sets default resource requests/limits for containers in a namespace. Any container created without explicit limits will automatically get the LimitRange defaults.\n\n**Your task:**\n\nCreate a namespace `bounded-ns` and a LimitRange named `default-limits` that sets:\n- Default CPU limit: `200m`\n- Default CPU request: `100m`\n- Default Memory limit: `256Mi`\n- Default Memory request: `128Mi`",
+  "hints": [
+    {
+      "title": "LimitRange manifest",
+      "body": "Use `type: Container` and the `default`/`defaultRequest` fields inside `spec.limits[]`.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: LimitRange\nmetadata:\n  name: default-limits\n  namespace: bounded-ns\nspec:\n  limits:\n  - type: Container\n    default:\n      cpu: \"200m\"\n      memory: \"256Mi\"\n    defaultRequest:\n      cpu: \"100m\"\n      memory: \"128Mi\"\nEOF"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create namespace bounded-ns 2>/dev/null || true"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "LimitRange 'default-limits' exists in bounded-ns",
+        "command": "kubectl get limitrange default-limits -n bounded-ns -o jsonpath='{.metadata.name}'",
+        "expected_output": "default-limits",
+        "match": "exact"
+      },
+      {
+        "description": "Default CPU limit is 200m",
+        "command": "kubectl get limitrange default-limits -n bounded-ns -o jsonpath='{.spec.limits[0].default.cpu}'",
+        "expected_output": "200m",
+        "match": "exact"
+      },
+      {
+        "description": "Default memory limit is 256Mi",
+        "command": "kubectl get limitrange default-limits -n bounded-ns -o jsonpath='{.spec.limits[0].default.memory}'",
+        "expected_output": "256Mi",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "bounded-ns",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete namespace bounded-ns --ignore-not-found --wait=false"
+    }
+  ]
+}

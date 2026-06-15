@@ -1,0 +1,53 @@
+{
+  "id": "node-label-selector",
+  "title": "Node Labels and nodeSelector",
+  "category": "Cluster Administration",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 5,
+  "description": "## Node Labels and nodeSelector\n\nLabelling nodes lets you constrain which nodes a pod can be scheduled on, using `nodeSelector` in the pod spec.\n\n**Your task:**\n\n1. Add the label `disk=ssd` to node `k8s-lab`\n2. Create a Pod named `ssd-pod` using `nginx:alpine` that uses `nodeSelector` to target nodes with `disk=ssd`",
+  "hints": [
+    {
+      "title": "Label the node",
+      "body": "Use `kubectl label node <node-name> key=value`.",
+      "command": "kubectl label node k8s-lab disk=ssd --overwrite"
+    },
+    {
+      "title": "Use nodeSelector in pod spec",
+      "body": "Add `nodeSelector: disk: ssd` under `spec` in the pod manifest.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: ssd-pod\nspec:\n  nodeSelector:\n    disk: ssd\n  containers:\n  - name: app\n    image: nginx:alpine\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Node 'k8s-lab' has label disk=ssd",
+        "command": "kubectl get node k8s-lab -o jsonpath='{.metadata.labels.disk}'",
+        "expected_output": "ssd",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'ssd-pod' has nodeSelector disk=ssd",
+        "command": "kubectl get pod ssd-pod -o jsonpath='{.spec.nodeSelector.disk}'",
+        "expected_output": "ssd",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'ssd-pod' is Running",
+        "command": "kubectl get pod ssd-pod -o jsonpath='{.status.phase}'",
+        "expected_output": "Running",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl label node k8s-lab disk- 2>/dev/null || true"
+    },
+    {
+      "command": "kubectl delete pod ssd-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

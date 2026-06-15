@@ -1,0 +1,57 @@
+{
+  "id": "resource-limits-task",
+  "title": "Resource Requests and Limits",
+  "category": "Configuration",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 5,
+  "description": "## Resource Requests and Limits\n\nProper resource management prevents noisy-neighbour issues and enables the Kubernetes scheduler to make good placement decisions.\n\n**Your task:**\n\nCreate a Pod named `limited-pod` using the `nginx:alpine` image with the following resource configuration:\n\n| | CPU | Memory |\n|---|---|---|\n| **Request** | `100m` | `64Mi` |\n| **Limit** | `200m` | `128Mi` |\n\n```bash\n# Tip: write a manifest and apply it\nkubectl apply -f limited-pod.yaml\n```",
+  "hints": [
+    {
+      "title": "Pod manifest with resources",
+      "body": "Add a `resources` block under `spec.containers[].resources` with `requests` and `limits` sub-keys.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: limited-pod\nspec:\n  containers:\n  - name: app\n    image: nginx:alpine\n    resources:\n      requests:\n        cpu: \"100m\"\n        memory: \"64Mi\"\n      limits:\n        cpu: \"200m\"\n        memory: \"128Mi\"\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Pod 'limited-pod' exists",
+        "command": "kubectl get pod limited-pod -o jsonpath='{.metadata.name}'",
+        "expected_output": "limited-pod",
+        "match": "exact"
+      },
+      {
+        "description": "CPU request is 100m",
+        "command": "kubectl get pod limited-pod -o jsonpath='{.spec.containers[0].resources.requests.cpu}'",
+        "expected_output": "100m",
+        "match": "exact"
+      },
+      {
+        "description": "Memory limit is 128Mi",
+        "command": "kubectl get pod limited-pod -o jsonpath='{.spec.containers[0].resources.limits.memory}'",
+        "expected_output": "128Mi",
+        "match": "exact"
+      },
+      {
+        "description": "CPU limit is 200m",
+        "command": "kubectl get pod limited-pod -o jsonpath='{.spec.containers[0].resources.limits.cpu}'",
+        "expected_output": "200m",
+        "match": "exact"
+      },
+      {
+        "description": "Memory request is 64Mi",
+        "command": "kubectl get pod limited-pod -o jsonpath='{.spec.containers[0].resources.requests.memory}'",
+        "expected_output": "64Mi",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod limited-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

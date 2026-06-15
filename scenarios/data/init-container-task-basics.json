@@ -1,0 +1,45 @@
+{
+  "id": "init-container-task-basics",
+  "title": "Pod with Init Container",
+  "category": "Core Concepts",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 5,
+  "description": "## Pod with Init Container\n\nInit containers run **before** the main application containers start. Each init container must complete successfully before the next one begins, and all must finish before the main containers are started. They are ideal for setup tasks like seeding config files or waiting for a dependency.\n\n**Your task:**\n\nCreate a Pod named `init-demo` with:\n- An **init container** named `setup` using `busybox:1.36` that writes `ready` into `/shared/status.txt`\n- A **main container** named `app` using `busybox:1.36` with command `sleep 3600`\n- Both containers mount an `emptyDir` volume at `/shared`\n\n```bash\n# Verify the init container wrote the file:\nkubectl exec init-demo -- cat /shared/status.txt\n```",
+  "hints": [
+    {
+      "title": "Pod manifest with initContainers",
+      "body": "Define `spec.initContainers[]` above `spec.containers[]`. Both containers share the emptyDir volume mounted at /shared.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: init-demo\nspec:\n  initContainers:\n  - name: setup\n    image: busybox:1.36\n    command: [\"sh\", \"-c\", \"echo ready > /shared/status.txt\"]\n    volumeMounts:\n    - name: shared-vol\n      mountPath: /shared\n  containers:\n  - name: app\n    image: busybox:1.36\n    command: [\"sleep\", \"3600\"]\n    volumeMounts:\n    - name: shared-vol\n      mountPath: /shared\n  volumes:\n  - name: shared-vol\n    emptyDir: {}\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "Pod 'init-demo' is Running",
+        "command": "kubectl get pod init-demo -o jsonpath='{.status.phase}'",
+        "expected_output": "Running",
+        "match": "exact"
+      },
+      {
+        "description": "Init container 'setup' completed with exit code 0",
+        "command": "kubectl get pod init-demo -o jsonpath='{.status.initContainerStatuses[0].state.terminated.exitCode}'",
+        "expected_output": "0",
+        "match": "exact"
+      },
+      {
+        "description": "File /shared/status.txt contains 'ready'",
+        "command": "kubectl exec init-demo -- cat /shared/status.txt 2>/dev/null",
+        "expected_output": "ready",
+        "match": "contains"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod init-demo --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

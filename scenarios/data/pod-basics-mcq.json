@@ -1,0 +1,44 @@
+{
+  "id": "pod-basics-mcq",
+  "title": "Pod Lifecycle States",
+  "category": "Core Concepts",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## What does the `CrashLoopBackOff` status mean for a Pod?\n\nYou observe the following when running `kubectl get pods`:\n\n```\nNAME          READY   STATUS             RESTARTS   AGE\nmy-app-xyz    0/1     CrashLoopBackOff   5          3m\n```\n\nWhat is the Kubernetes control plane communicating with this status?",
+  "options": [
+    {
+      "id": "a",
+      "text": "The pod image could not be pulled from the container registry"
+    },
+    {
+      "id": "b",
+      "text": "The container starts, crashes, and Kubernetes keeps restarting it with exponential backoff delay"
+    },
+    {
+      "id": "c",
+      "text": "The pod is waiting for a PersistentVolume to become available"
+    },
+    {
+      "id": "d",
+      "text": "The pod has been evicted from the node due to resource pressure"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "`CrashLoopBackOff` means the container is repeatedly crashing after startup. Kubernetes restarts it automatically but introduces increasing delays (backoff) between attempts to avoid overwhelming the system. Common causes include a bad entrypoint command, missing environment variables, or application errors on startup.",
+  "hints": [
+    {
+      "title": "Interpreting pod status",
+      "body": "Use `kubectl describe pod <name>` to see the Events section — it shows exactly why the container is failing.",
+      "command": "kubectl describe pod my-app-xyz"
+    },
+    {
+      "title": "Reading container logs",
+      "body": "Even a crashed container leaves logs behind. Use `--previous` to read the logs from the last crash.",
+      "command": "kubectl logs my-app-xyz --previous"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

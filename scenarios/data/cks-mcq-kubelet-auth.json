@@ -1,0 +1,33 @@
+{
+  "id": "cks-mcq-kubelet-auth",
+  "title": "Securing the Kubelet",
+  "category": "Cluster Setup",
+  "difficulty": "Medium",
+  "type": "mcq",
+  "weight": 2,
+  "description": "The kubelet exposes its own API on port 10250, which can allow an attacker to run `exec` commands on pods if left unsecured. Which configuration setting in the kubelet config file ensures unauthenticated requests are rejected?",
+  "options": [
+    {
+      "id": "a",
+      "text": "authorization.mode: Webhook"
+    },
+    {
+      "id": "b",
+      "text": "readOnlyPort: 0"
+    },
+    {
+      "id": "c",
+      "text": "authentication.anonymous.enabled: false"
+    },
+    {
+      "id": "d",
+      "text": "protectKernelDefaults: true"
+    }
+  ],
+  "correct_option": "c",
+  "explanation": "Setting `authentication.anonymous.enabled: false` ensures that the kubelet will reject any API requests that do not present a valid client certificate or bearer token.",
+  "hints": [],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

@@ -1,0 +1,59 @@
+{
+  "id": "env-vars-configmap",
+  "title": "Environment Variables from ConfigMap",
+  "category": "Configuration",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Environment Variables from ConfigMap\n\nConfigMaps can inject configuration as environment variables into pods, keeping application images generic and portable.\n\n**Your task:**\n\n1. Create a ConfigMap named `app-env` with two keys:\n   - `LOG_LEVEL=debug`\n   - `APP_PORT=8080`\n\n2. Create a Pod named `env-pod` using `busybox:1.36` with command `sleep 3600` that loads **all keys** from `app-env` as environment variables using `envFrom`.\n\n**Verify:**\n```bash\nkubectl exec env-pod -- env | grep -E 'LOG_LEVEL|APP_PORT'\n```",
+  "hints": [
+    {
+      "title": "Create the ConfigMap",
+      "body": "Use `kubectl create configmap` with multiple `--from-literal` flags.",
+      "command": "kubectl create configmap app-env --from-literal=LOG_LEVEL=debug --from-literal=APP_PORT=8080"
+    },
+    {
+      "title": "Load all ConfigMap keys via envFrom",
+      "body": "Use `envFrom` with `configMapRef` to load all keys at once — simpler than mapping each key individually.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: env-pod\nspec:\n  containers:\n  - name: app\n    image: busybox:1.36\n    command: [\"sleep\",\"3600\"]\n    envFrom:\n    - configMapRef:\n        name: app-env\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "ConfigMap 'app-env' has LOG_LEVEL=debug",
+        "command": "kubectl get configmap app-env -o jsonpath='{.data.LOG_LEVEL}'",
+        "expected_output": "debug",
+        "match": "exact"
+      },
+      {
+        "description": "ConfigMap 'app-env' has APP_PORT=8080",
+        "command": "kubectl get configmap app-env -o jsonpath='{.data.APP_PORT}'",
+        "expected_output": "8080",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'env-pod' references app-env via envFrom",
+        "command": "kubectl get pod env-pod -o jsonpath='{.spec.containers[0].envFrom[0].configMapRef.name}'",
+        "expected_output": "app-env",
+        "match": "exact"
+      },
+      {
+        "description": "Pod 'env-pod' is Running",
+        "command": "kubectl get pod env-pod -o jsonpath='{.status.phase}'",
+        "expected_output": "Running",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete configmap app-env --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete pod env-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

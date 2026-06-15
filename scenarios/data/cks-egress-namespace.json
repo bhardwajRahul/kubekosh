@@ -1,0 +1,58 @@
+{
+  "id": "cks-egress-namespace",
+  "title": "Restrict Egress to Namespace",
+  "category": "Network Security",
+  "difficulty": "Hard",
+  "type": "task",
+  "weight": 6,
+  "description": "## Namespace-Scoped Egress Network Policy\n\nFine-grained network policies can restrict pod traffic so that only pods within a specific namespace can communicate with each other.\n\n**Your task:**\n\nA namespace `frontend` and a namespace `backend` already exist. Create a NetworkPolicy named `allow-backend-only` in the `frontend` namespace that:\n\n- Applies to **all pods** in the `frontend` namespace\n- **Allows egress only** to pods in the `backend` namespace (matched by `namespaceSelector`)\n- **Denies all other egress** traffic\n\n```bash\n# Verify:\nkubectl get networkpolicy allow-backend-only -n frontend\n```",
+  "hints": [
+    {
+      "title": "namespaceSelector in Egress rule",
+      "body": "Use `spec.policyTypes: [Egress]` with an empty egress rule except for a `namespaceSelector` that matches the `backend` namespace label.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: allow-backend-only\n  namespace: frontend\nspec:\n  podSelector: {}\n  policyTypes:\n  - Egress\n  egress:\n  - to:\n    - namespaceSelector:\n        matchLabels:\n          kubernetes.io/metadata.name: backend\nEOF"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create namespace frontend --dry-run=client -o yaml | kubectl apply -f -"
+    },
+    {
+      "command": "kubectl create namespace backend --dry-run=client -o yaml | kubectl apply -f -"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "NetworkPolicy 'allow-backend-only' exists in frontend namespace",
+        "command": "kubectl get networkpolicy allow-backend-only -n frontend -o jsonpath='{.metadata.name}'",
+        "expected_output": "allow-backend-only",
+        "match": "exact"
+      },
+      {
+        "description": "Policy type is Egress only",
+        "command": "kubectl get networkpolicy allow-backend-only -n frontend -o jsonpath='{.spec.policyTypes[0]}'",
+        "expected_output": "Egress",
+        "match": "exact"
+      },
+      {
+        "description": "Policy uses namespaceSelector targeting backend namespace",
+        "command": "kubectl get networkpolicy allow-backend-only -n frontend -o jsonpath='{.spec.egress[0].to[0].namespaceSelector.matchLabels.kubernetes\\.io/metadata\\.name}'",
+        "expected_output": "backend",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "frontend",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete networkpolicy allow-backend-only -n frontend --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete namespace frontend --ignore-not-found --wait=false"
+    },
+    {
+      "command": "kubectl delete namespace backend --ignore-not-found --wait=false"
+    }
+  ]
+}

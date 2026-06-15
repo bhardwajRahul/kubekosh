@@ -1,0 +1,33 @@
+{
+  "id": "cks-seccomp-profile",
+  "title": "Seccomp Profiles",
+  "category": "Workload Security",
+  "difficulty": "Hard",
+  "type": "task",
+  "weight": 6,
+  "description": "## Secure Computing Mode (Seccomp)\n\nSeccomp restricts the system calls that a container can make to the host kernel.\n\n**Your task:**\n\nCreate a Pod named `seccomp-pod` using the `busybox:1.36` image (command: `sleep 3600`). Configure the pod so its seccomp profile type is set to `RuntimeDefault`.\n\n```bash\n# Tip: Review PodSecurityContext documentation\n```",
+  "hints": [
+    {
+      "title": "Set seccompProfile",
+      "body": "Add `seccompProfile: { type: RuntimeDefault }` to the pod's securityContext.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: Pod\nmetadata:\n  name: seccomp-pod\nspec:\n  securityContext:\n    seccompProfile:\n      type: RuntimeDefault\n  containers:\n  - name: main\n    image: busybox:1.36\n    command: [\"sleep\", \"3600\"]\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "seccompProfile type is RuntimeDefault",
+        "command": "kubectl get pod seccomp-pod -o jsonpath='{.spec.securityContext.seccompProfile.type}'",
+        "expected_output": "RuntimeDefault",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete pod seccomp-pod --ignore-not-found --grace-period=0 --force"
+    }
+  ]
+}

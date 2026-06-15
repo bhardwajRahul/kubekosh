@@ -1,0 +1,39 @@
+{
+  "id": "dns-resolution-mcq",
+  "title": "Kubernetes DNS Resolution",
+  "category": "Services & Networking",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Kubernetes DNS Resolution\n\nA pod in namespace `frontend` needs to reach a service named `db-service` in namespace `backend`. Which DNS name correctly resolves to that service from within the cluster?",
+  "options": [
+    {
+      "id": "a",
+      "text": "`db-service`"
+    },
+    {
+      "id": "b",
+      "text": "`db-service.backend`"
+    },
+    {
+      "id": "c",
+      "text": "`db-service.backend.svc.cluster.local`"
+    },
+    {
+      "id": "d",
+      "text": "`backend.db-service.cluster.local`"
+    }
+  ],
+  "correct_option": "c",
+  "explanation": "The full Kubernetes DNS format is `<service>.<namespace>.svc.<cluster-domain>`. The default cluster domain is `cluster.local`, so the FQDN is `db-service.backend.svc.cluster.local`. When pods are in the **same namespace**, just `db-service` works. Across namespaces, you need at minimum `db-service.backend` (short form). Option C is the fully-qualified name that always works regardless of the caller's namespace.",
+  "hints": [
+    {
+      "title": "Kubernetes DNS format",
+      "body": "CoreDNS resolves: `<svc-name>.<namespace>.svc.cluster.local`. You can verify with: `kubectl exec <pod> -- nslookup <service-name>`.",
+      "command": "kubectl exec -it <pod-name> -- nslookup db-service.backend.svc.cluster.local"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

@@ -1,0 +1,71 @@
+{
+  "id": "deploy-nginx",
+  "title": "Deploy and Expose Nginx",
+  "category": "Workloads",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 5,
+  "description": "## Deploy and Expose an Nginx Application\n\nThe platform team needs a simple web server running in the cluster.\n\n**Your tasks:**\n1. Create a **Deployment** named `webserver` in the `default` namespace\n2. Use the image `nginx:1.25`\n3. Set replica count to **2**\n4. Expose it via a **ClusterIP Service** named `webserver-svc` on port **80**\n\n> 💡 Tip: You can use `kubectl create` for both resources imperatively, or write YAML manifests.",
+  "hints": [
+    {
+      "title": "Create the Deployment",
+      "body": "Use `kubectl create deployment` with the `--image` and `--replicas` flags.",
+      "command": "kubectl create deployment webserver --image=nginx:1.25 --replicas=2"
+    },
+    {
+      "title": "Expose the Deployment",
+      "body": "Use `kubectl expose` to create a ClusterIP service targeting port 80.",
+      "command": "kubectl expose deployment webserver --name=webserver-svc --port=80 --target-port=80"
+    },
+    {
+      "title": "Verify",
+      "body": "Check that both resources are up and the service endpoints are populated.",
+      "command": "kubectl get deployment webserver && kubectl get svc webserver-svc && kubectl get endpoints webserver-svc"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "description": "Checks that the deployment exists with 2 replicas, uses the correct image, and the service exists targeting port 80.",
+    "commands": [
+      {
+        "description": "Deployment 'webserver' exists",
+        "command": "kubectl get deployment webserver -o jsonpath='{.metadata.name}'",
+        "expected_output": "webserver",
+        "match": "exact"
+      },
+      {
+        "description": "Deployment has 2 ready replicas",
+        "command": "kubectl get deployment webserver -o jsonpath='{.status.readyReplicas}'",
+        "expected_output": "2",
+        "match": "exact"
+      },
+      {
+        "description": "Deployment uses nginx:1.25 image",
+        "command": "kubectl get deployment webserver -o jsonpath='{.spec.template.spec.containers[0].image}'",
+        "expected_output": "nginx:1.25",
+        "match": "exact"
+      },
+      {
+        "description": "Service 'webserver-svc' exists",
+        "command": "kubectl get svc webserver-svc -o jsonpath='{.metadata.name}'",
+        "expected_output": "webserver-svc",
+        "match": "exact"
+      },
+      {
+        "description": "Service exposes port 80",
+        "command": "kubectl get svc webserver-svc -o jsonpath='{.spec.ports[0].port}'",
+        "expected_output": "80",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete deployment webserver --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete svc webserver-svc --ignore-not-found"
+    }
+  ]
+}

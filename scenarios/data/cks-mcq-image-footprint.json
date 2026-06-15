@@ -1,0 +1,33 @@
+{
+  "id": "cks-mcq-image-footprint",
+  "title": "Minimizing Image Footprint",
+  "category": "Supply Chain Security",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 2,
+  "description": "Why is it highly recommended in the CKS exam to use base images like **Alpine Linux** or **Distroless** for your containerized applications?",
+  "options": [
+    {
+      "id": "a",
+      "text": "They automatically encrypt data at rest"
+    },
+    {
+      "id": "b",
+      "text": "They have a significantly reduced attack surface with fewer packages"
+    },
+    {
+      "id": "c",
+      "text": "They automatically configure NetworkPolicies for the pod"
+    },
+    {
+      "id": "d",
+      "text": "They guarantee that the container will not run as root"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "Minimal images like Alpine or Distroless contain only the bare minimum files and dependencies needed to run the application. This drastically reduces the attack surface and the number of potential CVEs.",
+  "hints": [],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

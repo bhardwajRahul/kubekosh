@@ -1,0 +1,39 @@
+{
+  "id": "container-logging-mcq",
+  "title": "Container Logging and Monitoring",
+  "category": "Troubleshooting",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## Container Logging and Monitoring\n\nA pod `worker-abc` has crashed and restarted. You want to see the logs from the **previous** (crashed) container instance, not the current one.\n\nWhich command retrieves logs from the previously crashed container?",
+  "options": [
+    {
+      "id": "a",
+      "text": "`kubectl logs worker-abc --all-containers`"
+    },
+    {
+      "id": "b",
+      "text": "`kubectl logs worker-abc --previous`"
+    },
+    {
+      "id": "c",
+      "text": "`kubectl logs worker-abc --restart`"
+    },
+    {
+      "id": "d",
+      "text": "`kubectl describe pod worker-abc | grep log`"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "`kubectl logs <pod> --previous` (or `-p`) retrieves logs from the **terminated previous container** instance in a pod. This is critical for debugging CrashLoopBackOff scenarios where the container restarts before you can inspect its logs. `--all-containers` shows logs from all containers in the current run. `kubectl describe` shows events and status but not stdout/stderr logs.",
+  "hints": [
+    {
+      "title": "Useful kubectl logs flags",
+      "body": "`--previous`/`-p`: previous container | `--follow`/`-f`: stream | `--since=1h`: last hour | `--tail=50`: last 50 lines | `--timestamps`: show timestamps",
+      "command": "kubectl logs worker-abc --previous --tail=50"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

@@ -1,14 +1,14 @@
 # KubeKosh Configuration Schema Reference
 
-KubeKosh uses two primary JSON files to define its curriculum, learning paths, and exam configurations:
-1. **Bundles (`scenarios/bundles.json`)**: Defines the high-level study bundles (e.g., CKA, CKAD, CKS), active highlights, durations for exams, and lists of included scenarios.
-2. **Scenarios (`scenarios/scenarios.json`)**: Defines individual exercises, hands-on tasks, multiple-choice questions (MCQs), environment preparations, and automated validation scripts.
+KubeKosh uses two primary directories to define its curriculum, learning paths, and exam configurations:
+1. **Bundles (`scenarios/bundles`)**: Each file defines one high-level study bundle (e.g., CKA, CKAD, CKS), including active highlights, exam duration, ordered list of included scenarios, and other fields.
+2. **Scenarios (`scenarios/data`)**: Each file defines one individual exercise — a hands-on task or multiple-choice question (MCQ). Each scenario contains an environment setup script, cleanup script, hints, problem statement, automated validation script, and other fields.
 
 ---
 
-## 1. Bundles Schema (`scenarios/bundles.json`)
+## 1. Bundles Schema (`scenarios/bundles`)
 
-Bundles are defined as a JSON array of objects. Each bundle organizes a learning track or mock exam.
+Each file contains a **single bundle object**. The filename must match the bundle's `id` field (e.g., `k8s-basics.json`).
 
 ### Schema Fields
 * **`id`** *(string, required)*: A unique, kebab-case identifier for the bundle (e.g., `k8s-basics`).
@@ -41,9 +41,11 @@ Bundles are defined as a JSON array of objects. Each bundle organizes a learning
 
 ---
 
-## 2. Scenarios Schema (`scenarios/scenarios.json`)
+## 2. Scenarios Schema (`scenarios/data`)
 
-Scenarios are defined as a JSON array of objects. A scenario can be either a hands-on console challenge (`"task"`) or a multiple-choice question (`"mcq"`).
+Each file contains a **single scenario object**. The filename must match the scenario's `id` field (e.g., `k8s-basics.json`).
+
+Scenarios are defined as JSON objects. A scenario can be either a hands-on console challenge (`"task"`) or a multiple-choice question (`"mcq"`).
 
 ### Common Fields (All Types)
 ```jsonc

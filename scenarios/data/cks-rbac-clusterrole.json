@@ -1,0 +1,49 @@
+{
+  "id": "cks-rbac-clusterrole",
+  "title": "Cluster-Level RBAC",
+  "category": "Cluster Security",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 5,
+  "description": "## Cluster Roles and Bindings\n\nSome resources, like Nodes, are cluster-scoped and cannot be accessed using normal Roles and RoleBindings.\n\n**Your task:**\n\n1. Create a ServiceAccount named `monitor-sa` in the `monitoring` namespace.\n2. Create a ClusterRole named `node-viewer` that grants `get`, `list`, and `watch` permissions on `nodes`.\n3. Create a ClusterRoleBinding named `monitor-node-binding` to bind the ClusterRole to the ServiceAccount.\n\n```bash\n# Verify your permissions:\nkubectl auth can-i list nodes --as=system:serviceaccount:monitoring:monitor-sa\n```",
+  "hints": [
+    {
+      "title": "Imperative Commands",
+      "body": "Create the SA, then the ClusterRole, then the ClusterRoleBinding.",
+      "command": "kubectl create sa monitor-sa -n monitoring && kubectl create clusterrole node-viewer --verb=get,list,watch --resource=nodes && kubectl create clusterrolebinding monitor-node-binding --clusterrole=node-viewer --serviceaccount=monitoring:monitor-sa"
+    }
+  ],
+  "setup_commands": [
+    {
+      "command": "kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "description": "monitor-sa exists in monitoring namespace",
+        "command": "kubectl get sa monitor-sa -n monitoring -o jsonpath='{.metadata.name}'",
+        "expected_output": "monitor-sa",
+        "match": "exact"
+      },
+      {
+        "description": "ServiceAccount can list nodes",
+        "command": "kubectl auth can-i list nodes --as=system:serviceaccount:monitoring:monitor-sa",
+        "expected_output": "yes",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete sa monitor-sa -n monitoring --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete clusterrole node-viewer --ignore-not-found"
+    },
+    {
+      "command": "kubectl delete clusterrolebinding monitor-node-binding --ignore-not-found"
+    }
+  ]
+}

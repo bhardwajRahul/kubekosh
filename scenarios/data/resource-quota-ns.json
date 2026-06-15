@@ -1,0 +1,45 @@
+{
+  "id": "resource-quota-ns",
+  "title": "ResourceQuota for a Namespace",
+  "category": "Cluster Administration",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 7,
+  "description": "## ResourceQuota for a Namespace\n\nResourceQuotas enforce aggregate resource constraints per namespace, preventing any single team from consuming all cluster resources.\n\n**Your task:**\n\n1. Create a namespace named `team-quota`\n2. Create a **ResourceQuota** named `compute-quota` in `team-quota` that limits:\n   - `pods`: `5`\n   - `requests.cpu`: `\"1\"`\n   - `requests.memory`: `\"500Mi\"`",
+  "hints": [
+    {
+      "title": "Create the ResourceQuota",
+      "body": "Use `kubectl create resourcequota` with `--hard` flag or apply a YAML manifest.",
+      "command": "cat <<EOF | kubectl apply -f -\napiVersion: v1\nkind: ResourceQuota\nmetadata:\n  name: compute-quota\n  namespace: team-quota\nspec:\n  hard:\n    pods: \"5\"\n    requests.cpu: \"1\"\n    requests.memory: \"500Mi\"\nEOF"
+    }
+  ],
+  "setup_commands": [],
+  "validation": {
+    "commands": [
+      {
+        "description": "ResourceQuota 'compute-quota' exists in team-quota",
+        "command": "kubectl get resourcequota compute-quota -n team-quota -o jsonpath='{.metadata.name}'",
+        "expected_output": "compute-quota",
+        "match": "exact"
+      },
+      {
+        "description": "Pod limit is 5",
+        "command": "kubectl get resourcequota compute-quota -n team-quota -o jsonpath='{.spec.hard.pods}'",
+        "expected_output": "5",
+        "match": "exact"
+      },
+      {
+        "description": "CPU request limit is 1",
+        "command": "kubectl get resourcequota compute-quota -n team-quota -o jsonpath='{.spec.hard.requests\\.cpu}'",
+        "expected_output": "1",
+        "match": "exact"
+      }
+    ]
+  },
+  "default_namespace": "default",
+  "teardown_commands": [
+    {
+      "command": "kubectl delete namespace team-quota --ignore-not-found --wait=false"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "cluster-upgrade-mcq",
+  "title": "Cluster Upgrade Order",
+  "category": "Cluster Administration",
+  "difficulty": "Hard",
+  "type": "mcq",
+  "weight": 5,
+  "description": "## Cluster Upgrade Order\n\nYou need to upgrade a kubeadm-managed cluster from v1.28 to v1.29. What is the **correct order** of operations?",
+  "options": [
+    {
+      "id": "a",
+      "text": "1. Upgrade worker nodes → 2. Upgrade control plane → 3. Upgrade kubeadm → 4. Update kubelet/kubectl"
+    },
+    {
+      "id": "b",
+      "text": "1. Upgrade kubeadm on control plane → 2. Run `kubeadm upgrade apply` → 3. Upgrade kubelet/kubectl on control plane → 4. Drain and upgrade worker nodes one by one"
+    },
+    {
+      "id": "c",
+      "text": "1. `kubectl drain` all nodes → 2. Upgrade all nodes simultaneously → 3. `kubectl uncordon` all nodes"
+    },
+    {
+      "id": "d",
+      "text": "1. Upgrade etcd first → 2. Upgrade API server → 3. Upgrade scheduler and controller-manager → 4. Upgrade kubelet"
+    }
+  ],
+  "correct_option": "b",
+  "explanation": "The correct kubeadm upgrade order is: **1)** Upgrade `kubeadm` on the control plane node → **2)** Run `kubeadm upgrade apply v1.29.x` (upgrades control-plane components) → **3)** Upgrade `kubelet` and `kubectl` on the control plane, then `systemctl daemon-reload && systemctl restart kubelet` → **4)** For each worker: `kubectl drain`, upgrade `kubeadm`/`kubelet`/`kubectl`, run `kubeadm upgrade node`, restart kubelet, `kubectl uncordon`. Never upgrade workers before the control plane.",
+  "hints": [
+    {
+      "title": "kubeadm upgrade steps",
+      "body": "Key commands: `kubeadm upgrade plan` (preview), `kubeadm upgrade apply v1.29.x` (apply), `kubectl drain <node>` (before worker upgrade), `kubectl uncordon <node>` (after).",
+      "command": "kubeadm upgrade plan"
+    }
+  ],
+  "setup_commands": [],
+  "default_namespace": "default",
+  "teardown_commands": []
+}

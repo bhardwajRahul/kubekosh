@@ -46,7 +46,7 @@ docker run -itd --name kubekosh --privileged -p 7554:80 \
   -v <your_custom_directory>:/data zeborg/kubekosh:latest
 ```
 
-Progress is stored in SQLite at `/data/progress.db` inside the container. You may mount your own custom directory to `/data` to persist the progress across container restarts.
+Progress is stored in SQLite at `/data/progress.db` inside the container. Mount a local directory to `/data` to keep progress across container restarts.
 
 ### Build From Source
 
@@ -78,13 +78,22 @@ The terminal comes pre-configured with:
 | Alias | Expands to |
 |---|---|
 | `k` | `kubectl` |
+| `kg` | `kubectl get` |
+| `kd` | `kubectl describe` |
+| `krm` | `kubectl delete` |
 | `kgp` | `kubectl get pods` |
 | `kga` | `kubectl get pods --all-namespaces` |
 | `kgd` | `kubectl get deployments` |
 | `kgs` | `kubectl get services` |
+| `kgn` | `kubectl get nodes` |
+| `kgns` | `kubectl get namespaces` |
+| `kdp` | `kubectl describe pod` |
 | `kaf` | `kubectl apply -f` |
+| `kdf` | `kubectl delete -f` |
 | `kex` | `kubectl exec -it` |
+| `klogs` | `kubectl logs` |
 | `kns <ns>` | `kubectl config set-context --current --namespace=<ns>` |
+| `kctx <ctx>` | `kubectl config use-context <ctx>` |
 
 ---
 
@@ -102,13 +111,34 @@ Everything runs inside a **single Docker image** managed by `scripts/entrypoint.
 
 ---
 
+## Repository Layout
+
+```
+scenarios/
+├── data/             # One JSON file per scenario  → <id>.json
+├── bundles/          # One JSON file per bundle    → <id>.json
+└── SCHEMA.md         # Full schema reference
+
+backend/
+└── server.js         # Express API + WebSocket PTY
+
+frontend/
+└── src/              # React + Vite SPA
+
+scripts/
+├── entrypoint.sh     # Container startup (k3s → API → nginx)
+└── nginx.conf        # Reverse-proxy config
+```
+
+---
+
 ## Contributing
 
 Contributions are what make open-source projects like this one grow — and every contribution counts, big or small. Whether you're fixing a typo, polishing a scenario description, or building a completely new exercise from scratch, you're helping the next person learn Kubernetes in the best way possible. **Thank you for taking the time!**
 
 ### Adding Scenarios
 
-Scenarios live in `scenarios/scenarios.json`; bundles in `scenarios/bundles.json`. See [`scenarios/SCHEMA.md`](scenarios/SCHEMA.md) for the full schema.
+Each scenario is a single JSON file in `scenarios/data` directory; each bundle is a single JSON file in `scenarios/bundles` directory. See [`scenarios/SCHEMA.md`](scenarios/SCHEMA.md) for the full schema.
 
 **Task checklist:**
 - `validation.commands` — idempotent `kubectl` commands only
@@ -128,15 +158,20 @@ cd kubekosh
 # 2. Create a branch
 git checkout -b feat/my-scenario
 
-# 3. Edit scenarios/scenarios.json (and/or bundles.json)
+# 3. Add a new scenario file (copy an existing scenario as a template or create a new one)
+cp scenarios/data/deploy-nginx.json scenarios/data/my-new-scenario.json
+vim scenarios/data/my-new-scenario.json # edit the new scenario as per [SCHEMA.md](scenarios/SCHEMA.md)
 
-# 4. Build and test locally
+# 4. Add the scenario ID to the relevant bundle
+vim scenarios/bundles/k8s-basics.json # edit the bundle to include the new scenario ID
+
+# 5. Build and test locally
 docker build -t kubekosh . && docker run --rm -itd --privileged -p 7554:80 kubekosh
 
-# 5. Commit and push to your fork
-git add scenarios/scenarios.json
-git commit -m "feat: add <scenario-name> scenario"
-git push -u origin feat/my-scenario
+# 6. Commit and push to your fork (example for adding `my-new-scenario` to `k8s-basics` bundle)
+git add scenarios/data/my-new-scenario.json scenarios/bundles/k8s-basics.json
+git commit -m "feat: add my-new-scenario to k8s-basics bundle"
+git push -u origin feat/my-new-scenario
 ```
 
 Open a Pull Request from your fork's branch against `main`.
