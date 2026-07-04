@@ -1,0 +1,58 @@
+{
+  "id": "haproxy-basic-ingress-task",
+  "title": "Create a Basic HAProxy Ingress",
+  "category": "HAProxy Ingress",
+  "difficulty": "Easy",
+  "type": "task",
+  "weight": 4,
+  "description": "## Create a Basic HAProxy Ingress\n\nHAProxy Ingress uses standard Kubernetes `Ingress` resources. The controller picks them up when `spec.ingressClassName` is set to `haproxy`.\n\n**Your task:**\n\nA Deployment and Service named `web-app` are running in the `haproxy-lab` namespace on port `80`. Create an `Ingress` resource named `web-app-ingress` in the same namespace that:\n- Uses `ingressClassName: haproxy`\n- Routes all requests with path prefix `/app` to the `web-app` Service on port `80`\n- Uses `pathType: Prefix`\n\n```bash\n# Verify:\nkubectl get ingress web-app-ingress -n haproxy-lab -o jsonpath='{.spec.ingressClassName}'\nkubectl get ingress web-app-ingress -n haproxy-lab -o jsonpath='{.spec.rules[0].http.paths[0].path}'\n```",
+  "hints": [
+    {
+      "title": "Standard Ingress with ingressClassName",
+      "body": "Use spec.ingressClassName to bind to the HAProxy controller. The path and backend are defined under spec.rules.",
+      "command": "kubectl apply -f - <<'EOF'\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: web-app-ingress\n  namespace: haproxy-lab\nspec:\n  ingressClassName: haproxy\n  rules:\n  - http:\n      paths:\n      - path: /app\n        pathType: Prefix\n        backend:\n          service:\n            name: web-app\n            port:\n              number: 80\nEOF"
+    }
+  ],
+  "setup_commands": [
+    { "command": "kubectl create namespace haproxy-lab 2>/dev/null || true" },
+    { "command": "kubectl delete ingress web-app-ingress -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl create deployment web-app --image=nginx:alpine -n haproxy-lab 2>/dev/null || true" },
+    { "command": "kubectl expose deployment web-app --port=80 -n haproxy-lab 2>/dev/null || true" }
+  ],
+  "teardown_commands": [
+    { "command": "kubectl delete ingress web-app-ingress -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl delete service web-app -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl delete deployment web-app -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl delete namespace haproxy-lab --ignore-not-found" }
+  ],
+  "default_namespace": "haproxy-lab",
+  "validation": {
+    "description": "Check that the Ingress exists, uses the haproxy class, and routes /app to web-app",
+    "commands": [
+      {
+        "description": "Ingress web-app-ingress exists",
+        "command": "kubectl get ingress web-app-ingress -n haproxy-lab -o jsonpath='{.metadata.name}'",
+        "expected_output": "web-app-ingress",
+        "match": "exact"
+      },
+      {
+        "description": "ingressClassName is haproxy",
+        "command": "kubectl get ingress web-app-ingress -n haproxy-lab -o jsonpath='{.spec.ingressClassName}'",
+        "expected_output": "haproxy",
+        "match": "exact"
+      },
+      {
+        "description": "path is /app",
+        "command": "kubectl get ingress web-app-ingress -n haproxy-lab -o jsonpath='{.spec.rules[0].http.paths[0].path}'",
+        "expected_output": "/app",
+        "match": "exact"
+      },
+      {
+        "description": "backend service is web-app",
+        "command": "kubectl get ingress web-app-ingress -n haproxy-lab -o jsonpath='{.spec.rules[0].http.paths[0].backend.service.name}'",
+        "expected_output": "web-app",
+        "match": "exact"
+      }
+    ]
+  }
+}

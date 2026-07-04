@@ -1,0 +1,27 @@
+{
+  "id": "haproxy-health-check-mcq",
+  "title": "HAProxy Backend Health Checks",
+  "category": "HAProxy Ingress",
+  "difficulty": "Medium",
+  "type": "mcq",
+  "weight": 4,
+  "description": "## HAProxy Backend Health Checks\n\nHAProxy performs active health checks against backend pods to detect failures and remove unhealthy endpoints from rotation before a real request reaches them.\n\nWhich HAProxy Ingress annotation enables **HTTP-based** active health checks on backend pods?",
+  "options": [
+    { "id": "a", "text": "`haproxy.org/check: 'true'`" },
+    { "id": "b", "text": "`haproxy.org/health-check: http`" },
+    { "id": "c", "text": "`haproxy.org/backend-healthcheck: enabled`" },
+    { "id": "d", "text": "`haproxy.org/probe: liveness`" }
+  ],
+  "correct_option": "a",
+  "explanation": "`haproxy.org/check: 'true'` enables HAProxy's native active health checking for the backend. By default this sends a TCP probe; to use an HTTP probe, pair it with `haproxy.org/check-http: /healthz` (or another path) which configures an HTTP GET check against that path. The other options (`health-check`, `backend-healthcheck`, `probe`) are not valid HAProxy Ingress annotation keys.",
+  "hints": [
+    {
+      "title": "Combining check annotations",
+      "body": "Enable the check and specify an HTTP path together for HTTP-mode health checking.",
+      "command": "kubectl annotate ingress <name> haproxy.org/check='true' haproxy.org/check-http='/healthz'"
+    }
+  ],
+  "setup_commands": [],
+  "teardown_commands": [],
+  "default_namespace": "default"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "haproxy-rate-limit-annotation-task",
+  "title": "Rate-Limit Requests with HAProxy Annotation",
+  "category": "HAProxy Ingress",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 5,
+  "description": "## Rate-Limit Requests with HAProxy Annotation\n\nHAProxy Ingress can enforce request rate limits at the ingress layer using annotations — no sidecar or application changes required.\n\n**Your task:**\n\nAn `Ingress` named `api-ingress` already exists in the `haproxy-lab` namespace. Annotate it to:\n- Limit each client IP to a maximum of **10 requests per second** (`haproxy.org/rate-limit-period: 1s`, `haproxy.org/rate-limit-requests: '10'`)\n- Enable the rate-limit feature (`haproxy.org/rate-limit-status-code: '429'` to return HTTP 429 on breach)\n\n```bash\n# Verify:\nkubectl get ingress api-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/rate-limit-requests}'\n```",
+  "hints": [
+    {
+      "title": "Annotating an existing Ingress",
+      "body": "Use kubectl annotate to add multiple annotations at once. Dots in annotation keys must be escaped with backslash when used on the command line.",
+      "command": "kubectl annotate ingress api-ingress -n haproxy-lab \\\n  haproxy.org/rate-limit-period='1s' \\\n  haproxy.org/rate-limit-requests='10' \\\n  haproxy.org/rate-limit-status-code='429'"
+    }
+  ],
+  "setup_commands": [
+    { "command": "kubectl create namespace haproxy-lab 2>/dev/null || true" },
+    {
+      "command": "kubectl apply -f - <<'EOF'\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: api-ingress\n  namespace: haproxy-lab\nspec:\n  ingressClassName: haproxy\n  rules:\n  - http:\n      paths:\n      - path: /api\n        pathType: Prefix\n        backend:\n          service:\n            name: api-svc\n            port:\n              number: 80\nEOF"
+    }
+  ],
+  "teardown_commands": [
+    { "command": "kubectl delete ingress api-ingress -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl delete namespace haproxy-lab --ignore-not-found" }
+  ],
+  "default_namespace": "haproxy-lab",
+  "validation": {
+    "description": "Check that the rate-limit annotations are present on api-ingress",
+    "commands": [
+      {
+        "description": "rate-limit-requests is 10",
+        "command": "kubectl get ingress api-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/rate-limit-requests}'",
+        "expected_output": "10",
+        "match": "exact"
+      },
+      {
+        "description": "rate-limit-period is 1s",
+        "command": "kubectl get ingress api-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/rate-limit-period}'",
+        "expected_output": "1s",
+        "match": "exact"
+      },
+      {
+        "description": "rate-limit-status-code is 429",
+        "command": "kubectl get ingress api-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/rate-limit-status-code}'",
+        "expected_output": "429",
+        "match": "exact"
+      }
+    ]
+  }
+}

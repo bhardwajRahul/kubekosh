@@ -1,0 +1,27 @@
+{
+  "id": "haproxy-ssl-passthrough-mcq",
+  "title": "HAProxy SSL Passthrough vs Termination",
+  "category": "HAProxy Ingress",
+  "difficulty": "Medium",
+  "type": "mcq",
+  "weight": 4,
+  "description": "## HAProxy SSL Passthrough vs Termination\n\nHAProxy supports two approaches to TLS: **termination** (HAProxy decrypts the traffic) and **passthrough** (HAProxy forwards the encrypted stream directly to the backend).\n\nWhich annotation enables SSL passthrough on an HAProxy-managed Ingress?",
+  "options": [
+    { "id": "a", "text": "`haproxy.org/ssl-passthrough: 'true'`" },
+    { "id": "b", "text": "`haproxy.org/tls-passthrough: enabled`" },
+    { "id": "c", "text": "`haproxy.org/backend-protocol: SSL`" },
+    { "id": "d", "text": "`haproxy.org/forwarded-for: 'true'`" }
+  ],
+  "correct_option": "a",
+  "explanation": "Setting `haproxy.org/ssl-passthrough: 'true'` instructs HAProxy to operate at TCP layer (L4) for the matching route, forwarding raw TLS bytes to the backend without decryption. This is required when the backend itself terminates TLS (e.g. a database or a gRPC service with mutual TLS). `haproxy.org/backend-protocol: SSL` controls how HAProxy connects *to* the backend (re-encryption), not passthrough. `haproxy.org/forwarded-for` adds the X-Forwarded-For header, which is unrelated to TLS.",
+  "hints": [
+    {
+      "title": "When to use passthrough vs termination",
+      "body": "Use SSL passthrough when the backend must see the original client TLS handshake (e.g. for client certificate verification). Use termination when HAProxy should handle the certificate.",
+      "command": "kubectl get ingress -A -o jsonpath='{range .items[*]}{.metadata.name}{\"\\t\"}{.metadata.annotations}{\"\\n\"}{end}'"
+    }
+  ],
+  "setup_commands": [],
+  "teardown_commands": [],
+  "default_namespace": "default"
+}

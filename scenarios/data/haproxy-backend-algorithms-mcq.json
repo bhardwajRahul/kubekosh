@@ -1,0 +1,27 @@
+{
+  "id": "haproxy-backend-algorithms-mcq",
+  "title": "HAProxy Load Balancing Algorithms",
+  "category": "HAProxy Ingress",
+  "difficulty": "Medium",
+  "type": "mcq",
+  "weight": 4,
+  "description": "## HAProxy Load Balancing Algorithms\n\nHAProxy supports several load balancing algorithms for distributing traffic across backend pods. The algorithm is configured per-Ingress via an annotation.\n\nWhich annotation and value configures HAProxy to use the **least-connections** algorithm for an Ingress backend?",
+  "options": [
+    { "id": "a", "text": "`haproxy.org/load-balance: leastconn`" },
+    { "id": "b", "text": "`nginx.ingress.kubernetes.io/load-balance: least_conn`" },
+    { "id": "c", "text": "`haproxy.org/balance-algorithm: round_robin`" },
+    { "id": "d", "text": "`haproxy.org/backend-algorithm: least-connections`" }
+  ],
+  "correct_option": "a",
+  "explanation": "HAProxy Ingress uses the annotation prefix `haproxy.org/`. The `haproxy.org/load-balance` annotation selects the balancing algorithm. Valid values mirror HAProxy's native algorithms: `roundrobin` (default), `leastconn`, `source`, `uri`, `hdr`, and others. The `nginx.ingress.kubernetes.io/` prefix belongs to NGINX Ingress and is ignored by HAProxy. `round_robin` and `least-connections` are not valid HAProxy annotation values.",
+  "hints": [
+    {
+      "title": "Viewing annotations on an Ingress",
+      "body": "Use kubectl describe to see all annotations on an existing Ingress, including HAProxy-specific ones.",
+      "command": "kubectl describe ingress <name> -n <namespace>"
+    }
+  ],
+  "setup_commands": [],
+  "teardown_commands": [],
+  "default_namespace": "default"
+}

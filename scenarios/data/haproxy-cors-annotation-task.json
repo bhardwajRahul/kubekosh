@@ -1,0 +1,50 @@
+{
+  "id": "haproxy-cors-annotation-task",
+  "title": "Enable CORS Headers via HAProxy Annotation",
+  "category": "HAProxy Ingress",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 6,
+  "description": "## Enable CORS Headers via HAProxy Annotation\n\nCross-Origin Resource Sharing (CORS) headers must be present on API responses for browser-based clients on a different origin. HAProxy Ingress can inject these headers without modifying the backend application.\n\n**Your task:**\n\nAn `Ingress` named `api-ingress` exists in the `haproxy-lab` namespace. Annotate it to enable CORS with the following settings:\n- `haproxy.org/cors-enable: 'true'`\n- `haproxy.org/cors-allow-origin: '*'`\n- `haproxy.org/cors-allow-methods: 'GET, POST, OPTIONS'`\n\n```bash\n# Verify:\nkubectl get ingress api-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/cors-enable}'\n```",
+  "hints": [
+    {
+      "title": "Annotating with kubectl annotate",
+      "body": "Use kubectl annotate to add all three CORS annotations in one command.",
+      "command": "kubectl annotate ingress api-ingress -n haproxy-lab \\\n  haproxy.org/cors-enable='true' \\\n  haproxy.org/cors-allow-origin='*' \\\n  haproxy.org/cors-allow-methods='GET, POST, OPTIONS'"
+    }
+  ],
+  "setup_commands": [
+    { "command": "kubectl create namespace haproxy-lab 2>/dev/null || true" },
+    {
+      "command": "kubectl apply -f - <<'EOF'\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: api-ingress\n  namespace: haproxy-lab\nspec:\n  ingressClassName: haproxy\n  rules:\n  - http:\n      paths:\n      - path: /api\n        pathType: Prefix\n        backend:\n          service:\n            name: api-svc\n            port:\n              number: 80\nEOF"
+    }
+  ],
+  "teardown_commands": [
+    { "command": "kubectl delete ingress api-ingress -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl delete namespace haproxy-lab --ignore-not-found" }
+  ],
+  "default_namespace": "haproxy-lab",
+  "validation": {
+    "description": "Check that the three CORS annotations are set on api-ingress",
+    "commands": [
+      {
+        "description": "cors-enable is true",
+        "command": "kubectl get ingress api-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/cors-enable}'",
+        "expected_output": "true",
+        "match": "exact"
+      },
+      {
+        "description": "cors-allow-origin is *",
+        "command": "kubectl get ingress api-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/cors-allow-origin}'",
+        "expected_output": "*",
+        "match": "exact"
+      },
+      {
+        "description": "cors-allow-methods contains GET",
+        "command": "kubectl get ingress api-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/cors-allow-methods}'",
+        "expected_output": "GET",
+        "match": "contains"
+      }
+    ]
+  }
+}

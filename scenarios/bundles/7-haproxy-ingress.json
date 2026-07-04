@@ -1,0 +1,21 @@
+{
+  "id": "7-haproxy-ingress",
+  "name": "HAProxy Ingress",
+  "icon": "🔀",
+  "tagline": "High-performance ingress control with HAProxy annotations",
+  "color": "#f97316",
+  "colorDim": "rgba(249,115,22,0.12)",
+  "exam_minutes": 60,
+  "scenario_ids": [
+    "haproxy-ingress-class-mcq",
+    "haproxy-backend-algorithms-mcq",
+    "haproxy-ssl-passthrough-mcq",
+    "haproxy-health-check-mcq",
+    "haproxy-basic-ingress-task",
+    "haproxy-rate-limit-annotation-task",
+    "haproxy-tls-secret-ingress-task",
+    "haproxy-load-balance-annotation-task",
+    "haproxy-cors-annotation-task",
+    "haproxy-canary-ingress-task"
+  ]
+}

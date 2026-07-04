@@ -1,0 +1,27 @@
+{
+  "id": "haproxy-ingress-class-mcq",
+  "title": "HAProxy IngressClass and Controller",
+  "category": "HAProxy Ingress",
+  "difficulty": "Easy",
+  "type": "mcq",
+  "weight": 3,
+  "description": "## HAProxy IngressClass and Controller\n\nWhen multiple ingress controllers run in the same cluster, Kubernetes uses the `IngressClass` resource to determine which controller should handle a given `Ingress` object.\n\nHow does a Kubernetes `Ingress` resource declare that it should be handled by the **HAProxy** ingress controller?",
+  "options": [
+    { "id": "a", "text": "By setting the annotation `kubernetes.io/ingress.class: haproxy` or spec.ingressClassName: haproxy on the Ingress resource" },
+    { "id": "b", "text": "By deploying the Ingress in the same namespace as the HAProxy controller pod" },
+    { "id": "c", "text": "HAProxy automatically claims all Ingress resources in the cluster regardless of class" },
+    { "id": "d", "text": "By setting a label `controller: haproxy` on the Ingress resource" }
+  ],
+  "correct_option": "a",
+  "explanation": "An Ingress is bound to a specific controller via `spec.ingressClassName` (the modern approach, referencing an `IngressClass` object) or the legacy annotation `kubernetes.io/ingress.class`. HAProxy's Helm chart creates an IngressClass named `haproxy` by default. Without a class selector, the HAProxy controller ignores Ingress objects it wasn't told to manage. Namespace colocation and labels have no bearing on controller selection.",
+  "hints": [
+    {
+      "title": "Checking available IngressClasses",
+      "body": "Use kubectl to list IngressClass objects. The HAProxy one is typically named 'haproxy'.",
+      "command": "kubectl get ingressclass"
+    }
+  ],
+  "setup_commands": [],
+  "teardown_commands": [],
+  "default_namespace": "haproxy-controller"
+}

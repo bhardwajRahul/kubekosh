@@ -1,0 +1,38 @@
+{
+  "id": "haproxy-load-balance-annotation-task",
+  "title": "Set Load Balancing Algorithm via Annotation",
+  "category": "HAProxy Ingress",
+  "difficulty": "Medium",
+  "type": "task",
+  "weight": 5,
+  "description": "## Set Load Balancing Algorithm via Annotation\n\nHAProxy supports multiple load balancing algorithms. For stateful workloads — such as sessions stored in-memory — `leastconn` or `source` (source-IP affinity) are often preferred over the default `roundrobin`.\n\n**Your task:**\n\nAn `Ingress` named `shop-ingress` exists in the `haproxy-lab` namespace. Annotate it to use the **`leastconn`** load balancing algorithm.\n\nThe annotation key is: `haproxy.org/load-balance`\n\n```bash\n# Verify:\nkubectl get ingress shop-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/load-balance}'\n```",
+  "hints": [
+    {
+      "title": "Annotating with kubectl annotate",
+      "body": "Use kubectl annotate to add the load-balance annotation to the existing Ingress.",
+      "command": "kubectl annotate ingress shop-ingress -n haproxy-lab haproxy.org/load-balance=leastconn"
+    }
+  ],
+  "setup_commands": [
+    { "command": "kubectl create namespace haproxy-lab 2>/dev/null || true" },
+    {
+      "command": "kubectl apply -f - <<'EOF'\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: shop-ingress\n  namespace: haproxy-lab\nspec:\n  ingressClassName: haproxy\n  rules:\n  - http:\n      paths:\n      - path: /shop\n        pathType: Prefix\n        backend:\n          service:\n            name: shop-svc\n            port:\n              number: 80\nEOF"
+    }
+  ],
+  "teardown_commands": [
+    { "command": "kubectl delete ingress shop-ingress -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl delete namespace haproxy-lab --ignore-not-found" }
+  ],
+  "default_namespace": "haproxy-lab",
+  "validation": {
+    "description": "Check that shop-ingress has the leastconn load-balance annotation",
+    "commands": [
+      {
+        "description": "load-balance annotation is leastconn",
+        "command": "kubectl get ingress shop-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/load-balance}'",
+        "expected_output": "leastconn",
+        "match": "exact"
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "haproxy-canary-ingress-task",
+  "title": "Canary Deployment with HAProxy Ingress Annotations",
+  "category": "HAProxy Ingress",
+  "difficulty": "Hard",
+  "type": "task",
+  "weight": 7,
+  "description": "## Canary Deployment with HAProxy Ingress Annotations\n\nHAProxy Ingress supports weight-based canary deployments using annotations on a secondary Ingress resource. A small percentage of traffic is shifted to a new version without any changes to the primary Ingress.\n\n**Your task:**\n\nA primary `Ingress` named `main-ingress` already routes traffic to `app-v1` in the `haproxy-lab` namespace. Create a **canary** `Ingress` named `canary-ingress` in the same namespace that:\n- Uses `ingressClassName: haproxy`\n- Has the annotation `haproxy.org/canary-weight: '20'` to send 20% of traffic to the canary\n- Routes `PathPrefix /` to a Service named `app-v2` on port `80`\n- Has the same host rule structure as `main-ingress` (no explicit host — match all)\n\n```bash\n# Verify:\nkubectl get ingress canary-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/canary-weight}'\n```",
+  "hints": [
+    {
+      "title": "Canary Ingress structure",
+      "body": "The canary Ingress is a normal Ingress with the canary-weight annotation. HAProxy uses the weight (0-100) to split traffic between the primary and canary backends.",
+      "command": "kubectl apply -f - <<'EOF'\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: canary-ingress\n  namespace: haproxy-lab\n  annotations:\n    haproxy.org/canary-weight: '20'\nspec:\n  ingressClassName: haproxy\n  rules:\n  - http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: app-v2\n            port:\n              number: 80\nEOF"
+    }
+  ],
+  "setup_commands": [
+    { "command": "kubectl create namespace haproxy-lab 2>/dev/null || true" },
+    { "command": "kubectl delete ingress canary-ingress -n haproxy-lab --ignore-not-found" },
+    {
+      "command": "kubectl apply -f - <<'EOF'\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: main-ingress\n  namespace: haproxy-lab\nspec:\n  ingressClassName: haproxy\n  rules:\n  - http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: app-v1\n            port:\n              number: 80\nEOF"
+    }
+  ],
+  "teardown_commands": [
+    { "command": "kubectl delete ingress canary-ingress -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl delete ingress main-ingress -n haproxy-lab --ignore-not-found" },
+    { "command": "kubectl delete namespace haproxy-lab --ignore-not-found" }
+  ],
+  "default_namespace": "haproxy-lab",
+  "validation": {
+    "description": "Check that canary-ingress exists with the correct weight and backend",
+    "commands": [
+      {
+        "description": "canary-ingress exists",
+        "command": "kubectl get ingress canary-ingress -n haproxy-lab -o jsonpath='{.metadata.name}'",
+        "expected_output": "canary-ingress",
+        "match": "exact"
+      },
+      {
+        "description": "canary-weight annotation is 20",
+        "command": "kubectl get ingress canary-ingress -n haproxy-lab -o jsonpath='{.metadata.annotations.haproxy\\.org/canary-weight}'",
+        "expected_output": "20",
+        "match": "exact"
+      },
+      {
+        "description": "backend service is app-v2",
+        "command": "kubectl get ingress canary-ingress -n haproxy-lab -o jsonpath='{.spec.rules[0].http.paths[0].backend.service.name}'",
+        "expected_output": "app-v2",
+        "match": "exact"
+      },
+      {
+        "description": "ingressClassName is haproxy",
+        "command": "kubectl get ingress canary-ingress -n haproxy-lab -o jsonpath='{.spec.ingressClassName}'",
+        "expected_output": "haproxy",
+        "match": "exact"
+      }
+    ]
+  }
+}
