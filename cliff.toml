@@ -1,7 +1,7 @@
 [changelog]
 body = """
-{% if release.version %}
-    ## [{{ release.version | trim_start_matches(pat="v") }}] - {{ release.timestamp | date(format="%Y-%m-%d") }}
+{% if version %}
+    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% else %}
     ## [unreleased]
 {% endif %}
@@ -29,10 +29,10 @@ body = """
 {% endfor %}
 {% endif %}
 
-{% if release.previous.version %}
-**Full Changelog**: https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/compare/{{ release.previous.version }}...{{ release.version }}
+{% if previous.version %}
+**Full Changelog**: https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/compare/{{ previous.version }}...{{ version }}
 {% else %}
-**Full Changelog**: https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/commits/{{ release.version }}
+**Full Changelog**: https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/commits/{{ version }}
 {% endif %}
 """
 trim = true
