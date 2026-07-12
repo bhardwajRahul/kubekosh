@@ -120,6 +120,36 @@ function abandonSession(sessionId, bundleScenarioIds) {
   }
 }
 
+/**
+ * Upsert a row in exam_progress for the given session + scenario.
+ * Increments attempts by 1; preserves completed_at once set.
+ *
+ * @param {string} sessionId
+ * @param {string} scenarioId
+ * @param {'completed'|'in_progress'} status
+ */
+function upsertExamProgress(sessionId, scenarioId, status) {
+  const db = getDb();
+  const existing = db.prepare(
+    `SELECT attempts FROM exam_progress WHERE session_id=? AND scenario_id=?`
+  ).get(sessionId, scenarioId);
+  const attempts = (existing?.attempts || 0) + 1;
+  db.prepare(`
+    INSERT INTO exam_progress (session_id, scenario_id, status, attempts, completed_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(session_id, scenario_id) DO UPDATE SET
+      status       = excluded.status,
+      attempts     = excluded.attempts,
+      completed_at = COALESCE(excluded.completed_at, exam_progress.completed_at)
+  `).run(
+    sessionId,
+    scenarioId,
+    status,
+    attempts,
+    status === 'completed' ? new Date().toISOString() : null,
+  );
+}
+
 module.exports = {
   createSession,
   getActiveSession,
@@ -129,4 +159,5 @@ module.exports = {
   getExamProgress,
   submitSession,
   abandonSession,
+  upsertExamProgress,
 };

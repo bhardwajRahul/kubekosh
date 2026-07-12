@@ -2,6 +2,8 @@
 
 const { Router } = require('express');
 const { loadScenarios, loadBundles } = require('../lib/cache');
+const { injectToTerminal, refreshPrompt } = require('../lib/terminal');
+const { getActiveSession, upsertExamProgress } = require('../db/sessions');
 
 /**
  * GET    /api/scenarios                     — list scenarios (optional ?bundle= / ?session=)
@@ -13,7 +15,7 @@ const { loadScenarios, loadBundles } = require('../lib/cache');
  * POST   /api/scenarios/:id/context         — inject namespace + banner into terminal
  * POST   /api/scenarios/:id/time            — update time_spent_seconds
  */
-function createScenariosRouter({ getDb, loadProgress, saveProgress, runCommand, checkMatch, injectToTerminal, refreshPrompt }) {
+function createScenariosRouter({ loadProgress, saveProgress, runCommand, checkMatch }) {
   const router = Router();
 
   // GET /api/scenarios
@@ -24,8 +26,7 @@ function createScenariosRouter({ getDb, loadProgress, saveProgress, runCommand, 
 
     // Session-scoped: return only the session's shuffled scenario list
     if (sessionId) {
-      const db      = getDb();
-      const session = db.prepare(`SELECT scenario_ids FROM sessions WHERE id=?`).get(sessionId);
+      const session = getActiveSession();
       let sessionIds = [];
       try { sessionIds = session?.scenario_ids ? JSON.parse(session.scenario_ids) : []; } catch (_) {}
 
@@ -114,8 +115,8 @@ function createScenariosRouter({ getDb, loadProgress, saveProgress, runCommand, 
     if (!scenario) return res.status(404).json({ error: 'Scenario not found' });
     if (scenario.type !== 'task') return res.status(400).json({ error: 'Not a task scenario' });
 
-    const checks    = [];
-    let allPassed   = true;
+    const checks  = [];
+    let allPassed = true;
 
     for (const check of (scenario.validation?.commands || [])) {
       const result = await runCommand(check.command, 5000);
@@ -150,26 +151,10 @@ function createScenariosRouter({ getDb, loadProgress, saveProgress, runCommand, 
     };
     saveProgress(progress);
 
-    // Also update exam_progress if there's an active session
-    const db            = getDb();
-    const activeSession = db.prepare(`SELECT id FROM sessions WHERE status='active' LIMIT 1`).get();
+    // Mirror result into exam_progress if there's an active session
+    const activeSession = getActiveSession();
     if (activeSession) {
-      const ep        = db.prepare(`SELECT * FROM exam_progress WHERE session_id=? AND scenario_id=?`)
-        .get(activeSession.id, scenario.id);
-      const epAttempts = (ep?.attempts || 0) + 1;
-      db.prepare(`
-        INSERT INTO exam_progress (session_id, scenario_id, status, attempts, completed_at)
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(session_id, scenario_id) DO UPDATE SET
-          status = excluded.status,
-          attempts = excluded.attempts,
-          completed_at = COALESCE(excluded.completed_at, exam_progress.completed_at)
-      `).run(
-        activeSession.id, scenario.id,
-        allPassed ? 'completed' : 'in_progress',
-        epAttempts,
-        allPassed ? new Date().toISOString() : null,
-      );
+      upsertExamProgress(activeSession.id, scenario.id, allPassed ? 'completed' : 'in_progress');
     }
 
     res.json({ passed: allPassed, checks, attempts: progress[scenario.id].attempts });
@@ -196,26 +181,10 @@ function createScenariosRouter({ getDb, loadProgress, saveProgress, runCommand, 
     };
     saveProgress(progress);
 
-    // Also update exam_progress if there's an active session
-    const db            = getDb();
-    const activeSession = db.prepare(`SELECT id FROM sessions WHERE status='active' LIMIT 1`).get();
+    // Mirror result into exam_progress if there's an active session
+    const activeSession = getActiveSession();
     if (activeSession) {
-      const ep         = db.prepare(`SELECT * FROM exam_progress WHERE session_id=? AND scenario_id=?`)
-        .get(activeSession.id, scenario.id);
-      const epAttempts = (ep?.attempts || 0) + 1;
-      db.prepare(`
-        INSERT INTO exam_progress (session_id, scenario_id, status, attempts, completed_at)
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(session_id, scenario_id) DO UPDATE SET
-          status = excluded.status,
-          attempts = excluded.attempts,
-          completed_at = COALESCE(excluded.completed_at, exam_progress.completed_at)
-      `).run(
-        activeSession.id, scenario.id,
-        correct ? 'completed' : 'in_progress',
-        epAttempts,
-        correct ? new Date().toISOString() : null,
-      );
+      upsertExamProgress(activeSession.id, scenario.id, correct ? 'completed' : 'in_progress');
     }
 
     res.json({
@@ -231,7 +200,7 @@ function createScenariosRouter({ getDb, loadProgress, saveProgress, runCommand, 
     const scenario = loadScenarios().find(s => s.id === req.params.id);
     if (!scenario) return res.status(404).json({ error: 'Scenario not found' });
 
-    const ns         = scenario.default_namespace || 'default';
+    const ns          = scenario.default_namespace || 'default';
     const clearScreen = '\x1b[2J\x1b[3J\x1b[H';
     const line        = '\u2500'.repeat(54);
     const banner      = [
@@ -256,8 +225,7 @@ function createScenariosRouter({ getDb, loadProgress, saveProgress, runCommand, 
       return res.status(400).json({ error: 'Invalid time_spent_seconds' });
     }
 
-    const db            = getDb();
-    const activeSession = db.prepare("SELECT 1 FROM sessions WHERE status='active'").get();
+    const activeSession = getActiveSession();
     if (!activeSession) return res.json({ ok: true, message: 'No active session' });
 
     const progress = loadProgress();
